@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class FlowVerificationModule implements IFloodlightModule {
     private static final Logger logger = LoggerFactory.getLogger(org.openkilda.floodlight.spike.FlowVerificationModule.class);
 
-    FlowVerificationService flowVerification;
+    FlowVerificationService flowVerification = new FlowVerificationService();
 
     @Override
     public Collection<Class<? extends IFloodlightService>> getModuleServices() {
@@ -47,13 +47,13 @@ public class FlowVerificationModule implements IFloodlightModule {
 
     @Override
     public void init(FloodlightModuleContext floodlightModuleContext) throws FloodlightModuleException {
-        logger.info("STARTED", this.getClass().getCanonicalName());
-
-        flowVerification = new FlowVerificationService(floodlightModuleContext);
+        logger.debug("{}.init", this.getClass().getName());
     }
 
     @Override
-    public void startUp(FloodlightModuleContext FlContext) throws FloodlightModuleException {
-        flowVerification.init();
+    public void startUp(FloodlightModuleContext context) throws FloodlightModuleException {
+        logger.debug("{}.startUp", this.getClass().getName());
+
+        flowVerification.init(context);
     }
 }

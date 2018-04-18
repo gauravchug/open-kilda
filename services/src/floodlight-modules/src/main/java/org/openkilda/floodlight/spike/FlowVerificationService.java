@@ -16,18 +16,21 @@ public class FlowVerificationService
     private static final Logger logger = LoggerFactory.getLogger(
             FlowVerificationService.class);
 
-    private FloodlightModuleContext flContext;
     private FlowVerificationManager verify;
 
-    public FlowVerificationService(FloodlightModuleContext flContext) {
-        this.flContext = flContext;
-    }
+    public void init(FloodlightModuleContext flContext) {
+        logger.debug("Init {}", getClass().getName());
 
-    public void init() {
-        verify = new FlowVerificationManager(flContext.getServiceImpl(IOFSwitchService.class));
+        IOFSwitchService switchService = flContext.getServiceImpl(IOFSwitchService.class);
+        IFloodlightProviderService flProviderService = flContext.getServiceImpl(IFloodlightProviderService.class);
 
-        flContext.getServiceImpl(IOFSwitchService.class)
-                .addOFSwitchListener(this);
+        verify = new FlowVerificationManager(new SwitchUtils(switchService));
+        switchService.addOFSwitchListener(this);
+
+        flProviderService.addOFMessageListener(OFType.ERROR, this);
+        flProviderService.addOFMessageListener(OFType.PACKET_IN, this);
+        flProviderService.addOFMessageListener(OFType.PACKET_OUT, this);
+        flProviderService.addOFMessageListener(OFType.FLOW_MOD, this);
     }
 
     @Override

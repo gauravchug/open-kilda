@@ -1,7 +1,6 @@
 package org.openkilda.floodlight.spike;
 
 import net.floodlightcontroller.core.IOFSwitch;
-import net.floodlightcontroller.core.internal.IOFSwitchService;
 import net.floodlightcontroller.packet.Ethernet;
 import net.floodlightcontroller.util.OFMessageUtils;
 import org.projectfloodlight.openflow.protocol.*;
@@ -21,8 +20,8 @@ public class FlowVerificationManager {
     private static final Logger logger = LoggerFactory.getLogger(FlowVerificationManager.class);
 
     private long COOKIE_MARKER = 0x1100_0000_0000_0000L;
-    private int FLOW_IN_PORT = 4;
-    private int FLOW_OUT_PORT = 8;
+    private int FLOW_IN_PORT = 1;
+    private int FLOW_OUT_PORT = 1;
 
     private final SwitchUtils switchUtils;
 
@@ -35,23 +34,25 @@ public class FlowVerificationManager {
     State state = State.INIT;
     private final LinkedList<State> stateRecovery = new LinkedList<>();
 
-    public FlowVerificationManager(IOFSwitchService switchService) {
-        this.switchUtils = new SwitchUtils(switchService);
+    public FlowVerificationManager(SwitchUtils switchUtils) {
+        this.switchUtils = switchUtils;
 
         flowChain.addLast(
-                new SwitchPortLink(DatapathId.of(0x00000000_00000001), FLOW_IN_PORT, 1));
+                new SwitchPortLink(DatapathId.of(0x00000000_00000001), FLOW_IN_PORT, 2));
         flowChain.addLast(
-                new SwitchPortLink(DatapathId.of(0x00000000_00000002), 2, 1));
+                new SwitchPortLink(DatapathId.of(0x00000000_00000002), 3, 2));
         flowChain.addLast(
-                new SwitchPortLink(DatapathId.of(0x00000000_00000003), 1, FLOW_OUT_PORT));
+                new SwitchPortLink(DatapathId.of(0x00000000_00000003), 2, FLOW_OUT_PORT));
 
         for (SwitchPortLink link : flowChain) {
             switchesOfInterest.add(link.getDpId());
             pendingSwitches.add(link.getDpId());
         }
+
+        stateRecovery.addFirst(State.PREPARE_OF_RULES);
     }
 
-    public void signalHandler(Signal signal) {
+    public synchronized void signalHandler(Signal signal) {
         logger.debug("{}: incoming signal - {}", state, signal);
         boolean unhandled = false;
         boolean silentHandling = true;
@@ -70,25 +71,15 @@ public class FlowVerificationManager {
             case INIT:
             case SWITCH_COMMUNICATION_PROBLEM:
                 if (pendingSwitches.size() == 0) {
-                    stateTransition(State.PREPARE_OF_RULES);
+                    stateTransition();
                 }
                 break;
 
             case WAIT_RULES_INSTALLATION:
-                if (pendingOfMod.size() == 0) {
-                    stateTransition();
-                } else {
-                    logger.debug("wait for response for %d rules");
-                }
+                doProcessPendingOfMods();
                 break;
 
             case SEND_PACKAGE:
-                if (signal instanceof SwitchRemoveSignal) {
-                    doSwitchRemove((SwitchRemoveSignal) signal);
-                } else {
-                    unhandled = true;
-                }
-
                 if (0 < pendingSwitches.size()) {
                     stateTransition(State.STOP);
                 }
@@ -113,7 +104,16 @@ public class FlowVerificationManager {
     }
 
     public boolean signalOFMessage(OFMessageSignal signal) {
-        boolean haveMatch = doProcessPendingOfMods(signal);
+        boolean haveMatch = false;
+        for (PendingOfMessage pending : pendingOfMod) {
+            if (! pending.response(signal.getPayload())) {
+                continue;
+            }
+
+            haveMatch = true;
+            break;
+        }
+
         if (haveMatch) {
             signalHandler(signal);
         }
@@ -138,6 +138,9 @@ public class FlowVerificationManager {
             case INSTALL_OF_RULES:
                 stateEnterInstallRules(source);
                 break;
+            case WAIT_RULES_INSTALLATION:
+                stateEnterWaitRulesInstallation(source);
+                break;
             case SEND_PACKAGE:
                 stateEnterSendPackage(source);
                 break;
@@ -151,31 +154,38 @@ public class FlowVerificationManager {
         DatapathId dpId = signal.getDpId();
         if (switchesOfInterest.contains(dpId)) {
             pendingSwitches.add(dpId);
+            stateRecovery.addFirst(state);
+            stateTransition(State.SWITCH_COMMUNICATION_PROBLEM);
         }
     }
 
-    private boolean doProcessPendingOfMods(OFMessageSignal signal) {
-        OFMessage payload = signal.getPayload();
-        long xid = payload.getXid();
+    private void doProcessPendingOfMods() {
+        logger.debug("Process pending for response OFMessages");
+        for (Iterator<PendingOfMessage> iter = pendingOfMod.listIterator(); iter.hasNext(); ) {
+            PendingOfMessage pending = iter.next();
+            OFMessage response;
 
-        int queueSize = pendingOfMod.size();
-        try {
-            for (Iterator<PendingOfMessage> iter = pendingOfMod.listIterator(); iter.hasNext(); ) {
-                PendingOfMessage rule = iter.next();
-                if (rule.getXid() != xid) {
-                    continue;
-                }
-
-                rule.response(payload);
-                iter.remove();
-                break;
+            try {
+                response = pending.getResponse();
+            } catch (OFNoResponseError e) {
+                continue;
             }
-        } catch (OFModError e) {
-            logger.error(e.toString());
-            stateTransition(State.STOP);
+
+            if (OFType.ERROR.equals(response.getType())) {
+                logger.error(
+                        "Switch have rejected OFMod request (dpId: %s, xId: %s)",
+                        pending.getDpId(), response.getXid());
+                stateTransition(State.STOP);
+            }
+
+            iter.remove();
         }
 
-        return queueSize != pendingOfMod.size();
+        if (pendingOfMod.size() == 0) {
+            stateTransition();
+        } else {
+            logger.debug("wait for response for {} rules", pendingOfMod.size());
+        }
     }
 
     private void doVerificationResponse(PacketInSignal signal) {
@@ -195,7 +205,7 @@ public class FlowVerificationManager {
             DatapathId dpId = link.getDpId();
             IOFSwitch sw = switchUtils.lookupSwitch(dpId);
 
-            pendingOfMod.add(new PendingOfMessage(dpId, makeDropAllRule(sw)));
+            pendingOfMod.add(new PendingOfMessage(dpId, makeTableMissRule(sw)));
             pendingOfMod.add(new PendingOfMessage(dpId, makeCatchAllRule(sw)));
             pendingOfMod.add(new PendingOfMessage(dpId, makeCatchOwnRule(sw)));
         }
@@ -232,8 +242,13 @@ public class FlowVerificationManager {
             IOFSwitch sw = switchUtils.lookupSwitch(dbId);
             sw.disconnect();
 
+            stateRecovery.addFirst(state);
             stateTransition(State.SWITCH_COMMUNICATION_PROBLEM);
         }
+    }
+
+    private void stateEnterWaitRulesInstallation(State source) {
+        doProcessPendingOfMods();
     }
 
     private void stateEnterSendPackage(State source) {
@@ -251,17 +266,17 @@ public class FlowVerificationManager {
         pendingOfMod.add(pendingMessage);
 
         stateRecovery.addFirst(State.RECEIVE_PACKAGE);
-        stateTransition(State.WAIT_RULES_INSTALLATION);
+        stateTransition(State.INSTALL_OF_RULES);
     }
 
     private void stateEnterStop(State source) {
         logger.error("Unrecoverable error, stop any activity (state: {})", source);
     }
 
-    private OFMessage makeDropAllRule(IOFSwitch sw) {
+    private OFMessage makeTableMissRule(IOFSwitch sw) {
         OFFlowMod.Builder flowAdd = sw.getOFFactory().buildFlowAdd();
         flowAdd.setCookie(U64.of(COOKIE_MARKER | 1L));
-        flowAdd.setPriority(1000);
+        flowAdd.setPriority(0);
         return flowAdd.build();
     }
 

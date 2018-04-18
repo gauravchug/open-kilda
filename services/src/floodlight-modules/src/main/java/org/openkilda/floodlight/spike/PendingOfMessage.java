@@ -9,15 +9,16 @@ public class PendingOfMessage {
     private final int MAX_WRITE_ERROR = 5;
 
     private final DatapathId dpId;
-    private final OFMessage payload;
+    private final OFMessage request;
+    private OFMessage response = null;
     private final long xid;
     private boolean isInstalled = false;
     private int writeErrors = 0;
 
-    public PendingOfMessage(DatapathId dpId, OFMessage payload) {
+    public PendingOfMessage(DatapathId dpId, OFMessage request) {
         this.dpId = dpId;
-        this.payload = payload;
-        this.xid = payload.getXid();
+        this.request = request;
+        this.xid = request.getXid();
     }
 
     public void install(SwitchUtils switchUtils) throws SwitchWriteError {
@@ -26,30 +27,39 @@ public class PendingOfMessage {
         }
 
         IOFSwitch sw = switchUtils.lookupSwitch(getDpId());
-        isInstalled = sw.write(payload);
+        isInstalled = sw.write(request);
 
         if (!isInstalled) {
             writeErrors += 1;
             if (MAX_WRITE_ERROR <= writeErrors) {
-                throw new SwitchWriteError(getDpId(), getPayload());
+                throw new SwitchWriteError(getDpId(), getRequest());
             } else {
-                throw new SwitchWriteRepeatableError(getDpId(), getPayload());
+                throw new SwitchWriteRepeatableError(getDpId(), getRequest());
             }
         }
     }
 
-    public void response(OFMessage payload) throws OFModError {
-        if (OFType.ERROR.equals(payload.getType())) {
-            throw new OFModError(getDpId(), payload);
+    public boolean response(OFMessage payload) {
+        if (payload.getXid() != getXid()) {
+            return false;
         }
+        response = payload;
+        return true;
     }
 
     public DatapathId getDpId() {
         return dpId;
     }
 
-    public OFMessage getPayload() {
-        return payload;
+    public OFMessage getRequest() {
+        return request;
+    }
+
+    public OFMessage getResponse() throws OFNoResponseError {
+        if (response == null) {
+            throw new OFNoResponseError(getDpId(), getRequest());
+        }
+        return response;
     }
 
     public long getXid() {
