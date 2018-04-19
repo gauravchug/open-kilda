@@ -29,8 +29,7 @@ public class FlowVerificationService
 
         flProviderService.addOFMessageListener(OFType.ERROR, this);
         flProviderService.addOFMessageListener(OFType.PACKET_IN, this);
-        flProviderService.addOFMessageListener(OFType.PACKET_OUT, this);
-        flProviderService.addOFMessageListener(OFType.FLOW_MOD, this);
+        flProviderService.addOFMessageListener(OFType.BARRIER_REPLY, this);
     }
 
     @Override

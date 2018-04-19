@@ -33,6 +33,7 @@ public class FlowVerificationManager {
 
     State state = State.INIT;
     private final LinkedList<State> stateRecovery = new LinkedList<>();
+    private Map<Long, DatapathId> switchTransaction = new HashMap<>();
 
     public FlowVerificationManager(SwitchUtils switchUtils) {
         this.switchUtils = switchUtils;
@@ -76,12 +77,10 @@ public class FlowVerificationManager {
                 break;
 
             case WAIT_RULES_INSTALLATION:
-                doProcessPendingOfMods();
-                break;
-
-            case SEND_PACKAGE:
-                if (0 < pendingSwitches.size()) {
-                    stateTransition(State.STOP);
+                if (pendingOfMod.size() == 0) {
+                    stateTransition();
+                } else {
+                    logger.debug("wait for response for {} rules", pendingOfMod.size());
                 }
                 break;
 
@@ -103,15 +102,18 @@ public class FlowVerificationManager {
         }
     }
 
-    public boolean signalOFMessage(OFMessageSignal signal) {
+    public synchronized boolean signalOFMessage(OFMessageSignal signal) {
         boolean haveMatch = false;
-        for (PendingOfMessage pending : pendingOfMod) {
-            if (! pending.response(signal.getPayload())) {
-                continue;
-            }
 
-            haveMatch = true;
-            break;
+        switch (signal.getType()) {
+            case ERROR:
+                haveMatch = recordErrorResponse(signal);
+                break;
+            case BARRIER_REPLY:
+                haveMatch = closeTransaction(signal);
+                break;
+            case PACKET_IN:
+                haveMatch = true;
         }
 
         if (haveMatch) {
@@ -119,6 +121,52 @@ public class FlowVerificationManager {
         }
 
         return haveMatch;
+    }
+
+    private boolean recordErrorResponse(OFMessageSignal signal) {
+        OFMessage payload = signal.getPayload();
+        long xid = payload.getXid();
+
+        for (PendingOfMessage pending : pendingOfMod) {
+            if (pending.getXid() != xid) {
+                continue;
+            }
+
+            pending.response(payload);
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean closeTransaction(OFMessageSignal signal) {
+        long xid = signal.getPayload().getXid();
+        if (! switchTransaction.containsKey(xid)) {
+            return false;
+        }
+
+        DatapathId dpId = switchTransaction.get(xid);
+        boolean haveErrors = false;
+
+        Iterator<PendingOfMessage> iter = pendingOfMod.iterator();
+        while (iter.hasNext()) {
+            PendingOfMessage pending = iter.next();
+            if (pending.getDpId() != dpId) {
+                continue;
+            }
+            if (pending.getResponse() != null) {
+                haveErrors = true;
+                continue;
+            }
+
+            iter.remove();
+        }
+
+        if (haveErrors) {
+            stateTransition(State.STOP);
+        }
+
+        return true;
     }
 
     private void stateTransition() {
@@ -138,9 +186,6 @@ public class FlowVerificationManager {
             case INSTALL_OF_RULES:
                 stateEnterInstallRules(source);
                 break;
-            case WAIT_RULES_INSTALLATION:
-                stateEnterWaitRulesInstallation(source);
-                break;
             case SEND_PACKAGE:
                 stateEnterSendPackage(source);
                 break;
@@ -156,35 +201,6 @@ public class FlowVerificationManager {
             pendingSwitches.add(dpId);
             stateRecovery.addFirst(state);
             stateTransition(State.SWITCH_COMMUNICATION_PROBLEM);
-        }
-    }
-
-    private void doProcessPendingOfMods() {
-        logger.debug("Process pending for response OFMessages");
-        for (Iterator<PendingOfMessage> iter = pendingOfMod.listIterator(); iter.hasNext(); ) {
-            PendingOfMessage pending = iter.next();
-            OFMessage response;
-
-            try {
-                response = pending.getResponse();
-            } catch (OFNoResponseError e) {
-                continue;
-            }
-
-            if (OFType.ERROR.equals(response.getType())) {
-                logger.error(
-                        "Switch have rejected OFMod request (dpId: %s, xId: %s)",
-                        pending.getDpId(), response.getXid());
-                stateTransition(State.STOP);
-            }
-
-            iter.remove();
-        }
-
-        if (pendingOfMod.size() == 0) {
-            stateTransition();
-        } else {
-            logger.debug("wait for response for {} rules", pendingOfMod.size());
         }
     }
 
@@ -225,6 +241,8 @@ public class FlowVerificationManager {
     }
 
     private void stateEnterInstallRules(State source) {
+        makeTransactionMarkers();
+
         try {
             for (PendingOfMessage rule : pendingOfMod) {
                 rule.install(switchUtils);
@@ -247,10 +265,6 @@ public class FlowVerificationManager {
         }
     }
 
-    private void stateEnterWaitRulesInstallation(State source) {
-        doProcessPendingOfMods();
-    }
-
     private void stateEnterSendPackage(State source) {
         SwitchPortLink sourceLink = flowChain.getFirst();
         SwitchPortLink destLink = flowChain.getLast();
@@ -271,6 +285,22 @@ public class FlowVerificationManager {
 
     private void stateEnterStop(State source) {
         logger.error("Unrecoverable error, stop any activity (state: {})", source);
+    }
+
+    private void makeTransactionMarkers() {
+        Set<DatapathId> affectedSwitches = new HashSet<>();
+
+        for (PendingOfMessage pending : pendingOfMod) {
+            affectedSwitches.add(pending.getDpId());
+        }
+
+        for (DatapathId dpId : affectedSwitches) {
+            IOFSwitch sw = switchUtils.lookupSwitch(dpId);
+            OFMessage barrier = makeBarrierMessage(sw);
+
+            pendingOfMod.add(new PendingOfMessage(dpId, barrier));
+            switchTransaction.put(barrier.getXid(), dpId);
+        }
     }
 
     private OFMessage makeTableMissRule(IOFSwitch sw) {
@@ -326,6 +356,10 @@ public class FlowVerificationManager {
         flowAdd.setActions(action);
 
         return flowAdd.build();
+    }
+
+    private OFMessage makeBarrierMessage(IOFSwitch sw) {
+        return sw.getOFFactory().barrierRequest();
     }
 
     private OFMessage makeVerificationInjection(IOFSwitch sw, byte[] data, int srcPort) {

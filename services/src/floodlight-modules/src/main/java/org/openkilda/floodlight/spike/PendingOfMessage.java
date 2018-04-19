@@ -2,7 +2,6 @@ package org.openkilda.floodlight.spike;
 
 import net.floodlightcontroller.core.IOFSwitch;
 import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.types.DatapathId;
 
 public class PendingOfMessage {
@@ -55,10 +54,7 @@ public class PendingOfMessage {
         return request;
     }
 
-    public OFMessage getResponse() throws OFNoResponseError {
-        if (response == null) {
-            throw new OFNoResponseError(getDpId(), getRequest());
-        }
+    public OFMessage getResponse() {
         return response;
     }
 
