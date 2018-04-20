@@ -1,22 +1,27 @@
 package org.openkilda.floodlight.spike;
 
+import org.openkilda.floodlight.pathverification.VerificationPacket;
+import org.openkilda.floodlight.pathverification.type.PathType;
+
 import com.auth0.jwt.JWT;
 import net.floodlightcontroller.core.IOFSwitch;
 import net.floodlightcontroller.packet.Ethernet;
 import net.floodlightcontroller.packet.IPv4;
 import net.floodlightcontroller.packet.LLDPTLV;
 import net.floodlightcontroller.packet.UDP;
-import org.openkilda.floodlight.pathverification.VerificationPacket;
-import org.openkilda.floodlight.pathverification.type.PathType;
-import org.projectfloodlight.openflow.protocol.OFPortDesc;
-import org.projectfloodlight.openflow.types.*;
+import org.projectfloodlight.openflow.types.DatapathId;
+import org.projectfloodlight.openflow.types.EthType;
+import org.projectfloodlight.openflow.types.IPv4Address;
+import org.projectfloodlight.openflow.types.IpProtocol;
+import org.projectfloodlight.openflow.types.MacAddress;
+import org.projectfloodlight.openflow.types.OFPort;
+import org.projectfloodlight.openflow.types.TransportPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 
 public class VerificationPackageAdapter {
     private static final Logger logger = LoggerFactory.getLogger(VerificationPackageAdapter.class);
@@ -27,14 +32,14 @@ public class VerificationPackageAdapter {
     private byte data[];
 
     public VerificationPackageAdapter(IOFSwitch srcSw, OFPort srcPort, IOFSwitch dstSw, OFPort dstPort, VerificationPackageSign sign) {
-        OFPortDesc ofPortDesc = srcSw.getPort(srcPort);
-
         byte[] chassisId = new byte[]{4, 0, 0, 0, 0, 0, 0};
         byte[] portId = new byte[]{2, 0, 0};
         byte[] ttlValue = new byte[]{0, 0x78};
         byte[] dpidTLVValue = new byte[]{0x0, 0x26, (byte) 0xe1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-        LLDPTLV dpidTLV = new LLDPTLV().setType((byte) 127).setLength((short) dpidTLVValue.length)
+        LLDPTLV dpidTLV = new LLDPTLV()
+                .setType((byte) 127)
+                .setLength((short) dpidTLVValue.length)
                 .setValue(dpidTLVValue);
 
         byte[] dpidArray = new byte[8];
@@ -47,16 +52,13 @@ public class VerificationPackageAdapter {
         // Set the optionalTLV to the full SwitchID
         System.arraycopy(dpidArray, 0, dpidTLVValue, 4, 8);
 
+        byte[] srcMac = new byte[6];
+        System.arraycopy(dpidArray, 2, srcMac, 0, 6);
 
-        byte[] zeroMac = {0, 0, 0, 0, 0, 0};
-        byte[] srcMac = ofPortDesc.getHwAddr().getBytes();
-        if (Arrays.equals(srcMac, zeroMac)) {
-            int portVal = ofPortDesc.getPortNo().getPortNumber();
-            // this is a common scenario
-            logger.debug("Port {}/{} has zero hardware address: overwrite with lower 6 bytes of dpid",
-                    dpid.toString(), portVal);
-            System.arraycopy(dpidArray, 2, srcMac, 0, 6);
-        }
+        dpidBB.rewind();
+        dpidBB.putLong(dstSw.getId().getLong());
+        byte[] dstMac = new byte[6];
+        System.arraycopy(dpidArray, 2, dstMac, 0, 6);
 
         portBB.putShort(srcPort.getShortPortNumber());
 
@@ -115,7 +117,7 @@ public class VerificationPackageAdapter {
         }
 
         Ethernet l2 = new Ethernet().setSourceMACAddress(MacAddress.of(srcMac))
-                .setDestinationMACAddress(dstSw.getPort(dstPort).getHwAddr()).setEtherType(EthType.IPv4);
+                .setDestinationMACAddress(MacAddress.of(dstMac)).setEtherType(EthType.IPv4);
 
         IPv4Address dstIp = IPv4Address
                 .of(((InetSocketAddress) dstSw.getInetAddress()).getAddress().getAddress());

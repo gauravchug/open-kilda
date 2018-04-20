@@ -86,11 +86,13 @@ public class FlowVerificationService
 
     @Override
     public boolean isCallbackOrderingPrereq(OFType ofType, String s) {
+        logger.debug("OFMessage receive order PREREQ - type: {}, name: {}", ofType, s);
         return false;
     }
 
     @Override
     public boolean isCallbackOrderingPostreq(OFType ofType, String s) {
+        logger.debug("OFMessage receive order POSTREQ - type: {}, name: {}", ofType, s);
         return false;
     }
 

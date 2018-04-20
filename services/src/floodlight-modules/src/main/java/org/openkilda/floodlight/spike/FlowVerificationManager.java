@@ -332,7 +332,7 @@ public class FlowVerificationManager {
         flowAdd.setMatch(match.build());
 
         List<OFAction> actions = new ArrayList<>(2);
-        actions.add(ofFactory.actions().buildOutput().setPort(OFPort.CONTROLLER).build());
+        actions.add(ofFactory.actions().buildOutput().setPort(OFPort.CONTROLLER).setMaxLen(512).build());
 
         flowAdd.setActions(actions);
 
