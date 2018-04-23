@@ -1,53 +1,105 @@
 package org.openkilda.floodlight;
 
+import net.floodlightcontroller.core.IOFSwitch;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFType;
+import org.projectfloodlight.openflow.types.DatapathId;
 
+import javax.print.attribute.HashDocAttributeSet;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public class IoBatch {
-    private final long barrierXid;
-    private final List<IoRecord> batch;
-    private boolean errors = false;
-    private boolean complete = false;
+    private final SwitchUtils switchUtils;
 
-    public IoBatch(long barrierXid, List<IoRecord> batch) {
-        this.barrierXid = barrierXid;
-        this.batch = batch;
+    private final List<IoRecord> batch;
+    private final List<IoRecord> barriers;
+    private boolean errors = false;
+    private boolean complete;
+
+    public IoBatch(SwitchUtils switchUtils, List<IoRecord> batch) {
+        this.switchUtils = switchUtils;
+
+        HashSet<DatapathId> targets = new HashSet<>();
+        this.batch = new ArrayList<>(batch.size() + 1);
+        for (IoRecord record : batch) {
+            targets.add(record.getDpId());
+            this.batch.add(record);
+        }
+
+        this.barriers = new ArrayList<>(targets.size());
+        for (DatapathId dpId : targets) {
+            IOFSwitch sw = switchUtils.lookupSwitch(dpId);
+            IoRecord record = new IoRecord(dpId, sw.getOFFactory().barrierRequest());
+            barriers.add(record);
+        }
+
+        complete = 0 == barriers.size();
     }
 
-    boolean handleResponse(OFMessage response) {
-        boolean match = false;
+    public void write() {
+        HashMap<DatapathId, IOFSwitch> swMap = new HashMap<>();
+        for (IoRecord record : barriers) {
+            DatapathId dpId = record.getDpId();
+            swMap.put(dpId, switchUtils.lookupSwitch(dpId));
+        }
 
-        if (response.getType() == OFType.BARRIER_REPLY) {
-            match = complete = barrierXid == response.getXid();
-        } else if (response.getType() == OFType.ERROR) {
-            match = handleErrorResponse(response);
+        // TODO
+    }
+
+    public boolean handleResponse(OFMessage response) {
+        boolean match = true;
+
+        if (saveResponse(barriers, response)) {
+            updateBarriers();
+        } else if (saveResponse(batch, response)) {
+            errors = OFType.ERROR == response.getType();
         } else {
-            throw new IllegalArgumentException(
-                    String.format("%s can\'t handle %s type", getClass().getName(), response.getType()));
+            match = false;
         }
 
         return match;
     }
 
-    private boolean handleErrorResponse(OFMessage response) {
-        boolean match = false;
-
+    private boolean saveResponse(List<IoRecord> pending, OFMessage response) {
         long xid = response.getXid();
-        for (IoRecord request : batch) {
-            if (request.getXid() != xid) {
+        for (IoRecord record : pending) {
+            if (record.getXid() != xid) {
                 continue;
             }
 
-            request.setResponse(response);
-            errors = true;
-            match = true;
+            record.setResponse(response);
 
-            break;
+            return true;
         }
 
-        return match;
+        return false;
+    }
+
+    private void updateBarriers() {
+        boolean allDone = true;
+
+        for (IoRecord record : barriers) {
+            if (record.isPending()) {
+                allDone = false;
+                break;
+            }
+        }
+
+        if (allDone) {
+            removePendingState();
+            complete = true;
+        }
+    }
+
+    private void removePendingState() {
+        for (IoRecord record : batch) {
+            if (record.isPending()) {
+                record.setResponse(null);
+            }
+        }
     }
 
     public boolean isComplete() {

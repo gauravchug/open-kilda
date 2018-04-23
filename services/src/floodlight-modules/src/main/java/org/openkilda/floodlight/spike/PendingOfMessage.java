@@ -1,6 +1,7 @@
 package org.openkilda.floodlight.spike;
 
 import net.floodlightcontroller.core.IOFSwitch;
+import org.openkilda.floodlight.SwitchUtils;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.types.DatapathId;
 

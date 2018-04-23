@@ -3,6 +3,7 @@ package org.openkilda.floodlight.spike;
 import net.floodlightcontroller.core.IOFSwitch;
 import net.floodlightcontroller.packet.Ethernet;
 import net.floodlightcontroller.util.OFMessageUtils;
+import org.openkilda.floodlight.SwitchUtils;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFMessage;

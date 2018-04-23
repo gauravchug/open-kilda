@@ -1,4 +1,4 @@
-package org.openkilda.floodlight.spike;
+package org.openkilda.floodlight;
 
 import net.floodlightcontroller.core.IOFSwitch;
 import net.floodlightcontroller.core.internal.IOFSwitchService;
