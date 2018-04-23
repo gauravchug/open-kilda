@@ -31,7 +31,7 @@ public class VerificationPackageAdapter {
 
     private byte data[];
 
-    public VerificationPackageAdapter(IOFSwitch srcSw, OFPort srcPort, IOFSwitch dstSw, OFPort dstPort, VerificationPackageSign sign) {
+    public VerificationPackageAdapter(IOFSwitch srcSw, OFPort srcPort, IOFSwitch dstSw, short vlanId, VerificationPackageSign sign) {
         byte[] chassisId = new byte[]{4, 0, 0, 0, 0, 0, 0};
         byte[] portId = new byte[]{2, 0, 0};
         byte[] ttlValue = new byte[]{0, 0x78};
@@ -116,8 +116,11 @@ public class VerificationPackageAdapter {
             vp.getOptionalTLVList().add(tokenTLV);
         }
 
-        Ethernet l2 = new Ethernet().setSourceMACAddress(MacAddress.of(srcMac))
-                .setDestinationMACAddress(MacAddress.of(dstMac)).setEtherType(EthType.IPv4);
+        Ethernet l2 = new Ethernet()
+                .setEtherType(EthType.IPv4)
+                .setSourceMACAddress(MacAddress.of(srcMac))
+                .setDestinationMACAddress(MacAddress.of(dstMac))
+                .setVlanID(vlanId);
 
         IPv4Address dstIp = IPv4Address
                 .of(((InetSocketAddress) dstSw.getInetAddress()).getAddress().getAddress());

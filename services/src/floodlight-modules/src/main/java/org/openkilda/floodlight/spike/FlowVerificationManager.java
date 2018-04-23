@@ -3,29 +3,47 @@ package org.openkilda.floodlight.spike;
 import net.floodlightcontroller.core.IOFSwitch;
 import net.floodlightcontroller.packet.Ethernet;
 import net.floodlightcontroller.util.OFMessageUtils;
-import org.projectfloodlight.openflow.protocol.*;
+import org.projectfloodlight.openflow.protocol.OFFactory;
+import org.projectfloodlight.openflow.protocol.OFFlowMod;
+import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFPacketIn;
+import org.projectfloodlight.openflow.protocol.OFPacketOut;
+import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxms;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.OFPort;
+import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.U64;
+import org.projectfloodlight.openflow.types.VlanVid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class FlowVerificationManager {
     private static final Logger logger = LoggerFactory.getLogger(FlowVerificationManager.class);
 
     private long COOKIE_MARKER = 0x1100_0000_0000_0000L;
     private int FLOW_IN_PORT = 1;
+    private int FLOW_IN_VLAN = 96;
     private int FLOW_OUT_PORT = 1;
+    private int FLOW_OUT_VLAN = 128;
+    private int FLOW_TRANSIT_VLAN = 256;
 
     private final SwitchUtils switchUtils;
 
-    private final LinkedList<SwitchPortLink> flowChain = new LinkedList<>();
+    private final LinkedList<InSwitchFlow> flowChain = new LinkedList<>();
     private final Set<DatapathId> pendingSwitches = new HashSet<>();
     private final Set<DatapathId> switchesOfInterest = new HashSet<>();
 
@@ -39,13 +57,22 @@ public class FlowVerificationManager {
         this.switchUtils = switchUtils;
 
         flowChain.addLast(
-                new SwitchPortLink(DatapathId.of(0x00000000_00000001), FLOW_IN_PORT, 2));
+                new InSwitchFlow(
+                        DatapathId.of(0x00000000_00000001),
+                        new FlowEndpoint(FLOW_IN_PORT, VlanVid.ofVlan(FLOW_IN_VLAN)),
+                        new FlowEndpoint(2, VlanVid.ofVlan(FLOW_TRANSIT_VLAN))));
         flowChain.addLast(
-                new SwitchPortLink(DatapathId.of(0x00000000_00000002), 3, 2));
+                new InSwitchFlow(
+                        DatapathId.of(0x00000000_00000002),
+                        new FlowEndpoint(3, VlanVid.ofVlan(FLOW_TRANSIT_VLAN)),
+                        new FlowEndpoint(2, VlanVid.ofVlan(FLOW_TRANSIT_VLAN))));
         flowChain.addLast(
-                new SwitchPortLink(DatapathId.of(0x00000000_00000003), 2, FLOW_OUT_PORT));
+                new InSwitchFlow(
+                        DatapathId.of(0x00000000_00000003),
+                        new FlowEndpoint(2, VlanVid.ofVlan(FLOW_TRANSIT_VLAN)),
+                        new FlowEndpoint(FLOW_OUT_PORT, VlanVid.ofVlan(FLOW_OUT_VLAN))));
 
-        for (SwitchPortLink link : flowChain) {
+        for (InSwitchFlow link : flowChain) {
             switchesOfInterest.add(link.getDpId());
             pendingSwitches.add(link.getDpId());
         }
@@ -217,7 +244,7 @@ public class FlowVerificationManager {
     }
 
     private void stateEnterPrepareRules(State source) {
-        for (SwitchPortLink link: flowChain) {
+        for (InSwitchFlow link: flowChain) {
             DatapathId dpId = link.getDpId();
             IOFSwitch sw = switchUtils.lookupSwitch(dpId);
 
@@ -226,14 +253,14 @@ public class FlowVerificationManager {
             pendingOfMod.add(new PendingOfMessage(dpId, makeCatchOwnRule(sw)));
         }
 
-        for (SwitchPortLink link : flowChain) {
+        for (InSwitchFlow link : flowChain) {
             DatapathId dpId = link.getDpId();
             IOFSwitch sw = switchUtils.lookupSwitch(dpId);
 
             pendingOfMod.add(
-                    new PendingOfMessage(dpId, makePortLinkRule(sw, link.getSrcPortNumber(), link.getDstPortNumber())));
+                    new PendingOfMessage(dpId, makePortLinkRule(sw, link)));
             pendingOfMod.add(
-                    new PendingOfMessage(dpId, makePortLinkRule(sw, link.getDstPortNumber(), link.getSrcPortNumber())));
+                    new PendingOfMessage(dpId, makePortLinkRule(sw, link.reverse())));
         }
 
         stateRecovery.addFirst(State.SEND_PACKAGE);
@@ -266,16 +293,17 @@ public class FlowVerificationManager {
     }
 
     private void stateEnterSendPackage(State source) {
-        SwitchPortLink sourceLink = flowChain.getFirst();
-        SwitchPortLink destLink = flowChain.getLast();
+        InSwitchFlow sourceLink = flowChain.getFirst();
+        InSwitchFlow destLink = flowChain.getLast();
 
         VerificationPackageAdapter verification = new VerificationPackageAdapter(
                 switchUtils.lookupSwitch(sourceLink.getDpId()), OFPort.of(FLOW_IN_PORT),
-                switchUtils.lookupSwitch(destLink.getDpId()), OFPort.of(FLOW_OUT_PORT),
+                switchUtils.lookupSwitch(destLink.getDpId()), (short) FLOW_IN_VLAN,
                 new VerificationPackageSign("secret"));
 
         OFMessage payload = makeVerificationInjection(
-                switchUtils.lookupSwitch(sourceLink.getDpId()), verification.getData(), FLOW_IN_PORT);
+                switchUtils.lookupSwitch(sourceLink.getDpId()), verification.getData(),
+                new FlowEndpoint(FLOW_IN_PORT, VlanVid.ofVlan(FLOW_IN_VLAN)));
         PendingOfMessage pendingMessage = new PendingOfMessage(sourceLink.getDpId(), payload);
         pendingOfMod.add(pendingMessage);
 
@@ -339,7 +367,7 @@ public class FlowVerificationManager {
         return flowAdd.build();
     }
 
-    private OFMessage makePortLinkRule(IOFSwitch sw, int srcPort, int dstPort) {
+    private OFMessage makePortLinkRule(IOFSwitch sw, InSwitchFlow flow) {
         OFFactory ofFactory = sw.getOFFactory();
         int cookie = 0xff;
 
@@ -347,12 +375,24 @@ public class FlowVerificationManager {
         flowAdd.setCookie(U64.of(COOKIE_MARKER | cookie));
         flowAdd.setPriority(2500 + cookie);
 
+        FlowEndpoint left = flow.getLeft();
+        FlowEndpoint right = flow.getRight();
+
         Match.Builder match = ofFactory.buildMatch();
-        match.setExact(MatchField.IN_PORT, OFPort.of(srcPort));
+        match.setExact(MatchField.IN_PORT, OFPort.of(left.getPortNumber()));
+        match.setExact(MatchField.VLAN_VID, OFVlanVidMatch.ofVlanVid(left.getVlan()));
         flowAdd.setMatch(match.build());
 
         List<OFAction> action = new ArrayList<>(2);
-        action.add(ofFactory.actions().buildOutput().setPort(OFPort.of(dstPort)).build());
+        if (!left.getVlan().equals(right.getVlan())) {
+            OFOxms oxms = ofFactory.oxms();
+            action.add(
+                    ofFactory.actions().setField(
+                            oxms.buildVlanVid()
+                                    .setValue(OFVlanVidMatch.ofVlanVid(right.getVlan()))
+                                    .build()));
+        }
+        action.add(ofFactory.actions().buildOutput().setPort(OFPort.of(right.getPortNumber())).build());
         flowAdd.setActions(action);
 
         return flowAdd.build();
@@ -362,7 +402,7 @@ public class FlowVerificationManager {
         return sw.getOFFactory().barrierRequest();
     }
 
-    private OFMessage makeVerificationInjection(IOFSwitch sw, byte[] data, int srcPort) {
+    private OFMessage makeVerificationInjection(IOFSwitch sw, byte[] data, FlowEndpoint endpoint) {
         OFFactory ofFactory = sw.getOFFactory();
         OFPacketOut.Builder portOut = ofFactory.buildPacketOut();
 
@@ -372,7 +412,7 @@ public class FlowVerificationManager {
         actions.add(ofFactory.actions().buildOutput().setPort(OFPort.TABLE).build());
         portOut.setActions(actions);
 
-        OFMessageUtils.setInPort(portOut, OFPort.of(srcPort));
+        OFMessageUtils.setInPort(portOut, OFPort.of(endpoint.getPortNumber()));
 
         return portOut.build();
     }
