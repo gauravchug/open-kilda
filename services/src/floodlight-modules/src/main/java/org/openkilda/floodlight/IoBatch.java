@@ -1,60 +1,59 @@
 package org.openkilda.floodlight;
 
 import net.floodlightcontroller.core.IOFSwitch;
+import org.openkilda.floodlight.switchmanager.OFInstallException;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.types.DatapathId;
 
-import javax.print.attribute.HashDocAttributeSet;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
-public class IoBatch {
+class IoBatch {
     private final SwitchUtils switchUtils;
 
     private final List<IoRecord> batch;
-    private final List<IoRecord> barriers;
+    private final LinkedList<IoRecord> barriers;
     private boolean errors = false;
-    private boolean complete;
+    private boolean complete = false;
 
-    public IoBatch(SwitchUtils switchUtils, List<IoRecord> batch) {
+    IoBatch(SwitchUtils switchUtils, List<IoRecord> batch) {
         this.switchUtils = switchUtils;
+        this.batch = batch;
+        this.barriers = new LinkedList<>();
+    }
 
-        HashSet<DatapathId> targets = new HashSet<>();
-        this.batch = new ArrayList<>(batch.size() + 1);
-        for (IoRecord record : batch) {
-            targets.add(record.getDpId());
-            this.batch.add(record);
-        }
+    void write() throws OFInstallException {
+        HashSet<DatapathId> processedSwitched = new HashSet<>();
 
-        this.barriers = new ArrayList<>(targets.size());
-        for (DatapathId dpId : targets) {
-            IOFSwitch sw = switchUtils.lookupSwitch(dpId);
-            IoRecord record = new IoRecord(dpId, sw.getOFFactory().barrierRequest());
-            barriers.add(record);
-        }
+        boolean idle;
+        do {
+            idle = true;
+
+            Iterator<IoRecord> recordIter = batch.iterator();
+            while (recordIter.hasNext()) {
+                IoRecord record = recordIter.next();
+
+                if (processedSwitched.contains(record.getDpId())) {
+                    continue;
+                }
+
+                processedSwitched.add(record.getDpId());
+                idle = false;
+
+                writeOneSwitch(recordIter, switchUtils.lookupSwitch(record.getDpId()));
+                break;
+            }
+        } while (! idle);
 
         complete = 0 == barriers.size();
     }
 
-    public void write() {
-        HashMap<DatapathId, IOFSwitch> swMap = new HashMap<>();
-        for (IoRecord record : barriers) {
-            DatapathId dpId = record.getDpId();
-            swMap.put(dpId, switchUtils.lookupSwitch(dpId));
-        }
-
-        // TODO
-    }
-
-    public boolean handleResponse(OFMessage response) {
+    boolean handleResponse(OFMessage response) {
         boolean match = true;
 
-        if (saveResponse(barriers, response)) {
+        if (recordResponse(barriers, response)) {
             updateBarriers();
-        } else if (saveResponse(batch, response)) {
+        } else if (recordResponse(batch, response)) {
             errors = OFType.ERROR == response.getType();
         } else {
             match = false;
@@ -63,7 +62,33 @@ public class IoBatch {
         return match;
     }
 
-    private boolean saveResponse(List<IoRecord> pending, OFMessage response) {
+    private void writeOneSwitch(Iterator<IoRecord> recordIterator, IOFSwitch sw) throws OFInstallException {
+        DatapathId dpId = sw.getId();
+
+        boolean idle = true;
+        while (recordIterator.hasNext()) {
+            IoRecord record = recordIterator.next();
+
+            if (!dpId.equals(record.getDpId())) {
+                continue;
+            }
+
+            idle = false;
+            if (!sw.write(record.getRequest())) {
+                throw new OFInstallException(dpId, record.getRequest());
+            }
+        }
+
+        if (! idle) {
+            IoRecord barrierRecord = new IoRecord(dpId, sw.getOFFactory().barrierRequest());
+            if (!sw.write(barrierRecord.getRequest())) {
+                throw new OFInstallException(dpId, barrierRecord.getRequest());
+            }
+            barriers.addLast(barrierRecord);
+        }
+    }
+
+    private boolean recordResponse(List<IoRecord> pending, OFMessage response) {
         long xid = response.getXid();
         for (IoRecord record : pending) {
             if (record.getXid() != xid) {
@@ -102,15 +127,15 @@ public class IoBatch {
         }
     }
 
-    public boolean isComplete() {
+    boolean isComplete() {
         return complete;
     }
 
-    public boolean isErrors() {
+    boolean isErrors() {
         return errors;
     }
 
-    public List<IoRecord> getBatch() {
+    List<IoRecord> getBatch() {
         return batch;
     }
 }
