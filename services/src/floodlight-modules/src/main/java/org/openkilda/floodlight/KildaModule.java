@@ -1,5 +1,7 @@
 package org.openkilda.floodlight;
 
+import org.openkilda.floodlight.service.FlowVerificationRecipientService;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import net.floodlightcontroller.core.IFloodlightProviderService;
@@ -14,20 +16,20 @@ import java.util.Map;
 
 public class KildaModule implements IFloodlightModule {
     IoService transactionalIoService = new IoService();
-    PacketInService packetInService = new PacketInService();
+    FlowVerificationRecipientService flowVerificationRecipientService = new FlowVerificationRecipientService();
 
     @Override
     public Collection<Class<? extends IFloodlightService>> getModuleServices() {
         return ImmutableList.of(
                 IoService.class,
-                PacketInService.class);
+                FlowVerificationRecipientService.class);
     }
 
     @Override
     public Map<Class<? extends IFloodlightService>, IFloodlightService> getServiceImpls() {
         return ImmutableMap.of(
                 IoService.class, transactionalIoService,
-                PacketInService.class, packetInService);
+                FlowVerificationRecipientService.class, flowVerificationRecipientService);
     }
 
     @Override
@@ -45,5 +47,6 @@ public class KildaModule implements IFloodlightModule {
     @Override
     public void startUp(FloodlightModuleContext context) throws FloodlightModuleException {
         transactionalIoService.init(context);
+        flowVerificationRecipientService.init(context);
     }
 }
