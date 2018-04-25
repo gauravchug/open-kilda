@@ -23,6 +23,10 @@ public class SwitchUtils {
     }
 
     public MacAddress dpIdToMac(final IOFSwitch sw) {
-        return MacAddress.of(Arrays.copyOfRange(sw.getId().getBytes(), 2, 8));
+        return this.dpIdToMac(sw.getId());
+    }
+
+    public MacAddress dpIdToMac(final DatapathId dpId) {
+        return MacAddress.of(Arrays.copyOfRange(dpId.getBytes(), 2, 8));
     }
 }

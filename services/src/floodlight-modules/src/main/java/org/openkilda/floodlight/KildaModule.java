@@ -1,6 +1,9 @@
 package org.openkilda.floodlight;
 
-import org.openkilda.floodlight.service.FlowVerificationRecipientService;
+import net.floodlightcontroller.threadpool.IThreadPoolService;
+import org.openkilda.floodlight.kafka.KafkaMessageProducer;
+import org.openkilda.floodlight.pathverification.PathVerificationService;
+import org.openkilda.floodlight.service.FlowVerificationService;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -16,27 +19,30 @@ import java.util.Map;
 
 public class KildaModule implements IFloodlightModule {
     IoService transactionalIoService = new IoService();
-    FlowVerificationRecipientService flowVerificationRecipientService = new FlowVerificationRecipientService();
+    FlowVerificationService flowVerificationService = new FlowVerificationService();
 
     @Override
     public Collection<Class<? extends IFloodlightService>> getModuleServices() {
         return ImmutableList.of(
                 IoService.class,
-                FlowVerificationRecipientService.class);
+                FlowVerificationService.class);
     }
 
     @Override
     public Map<Class<? extends IFloodlightService>, IFloodlightService> getServiceImpls() {
         return ImmutableMap.of(
                 IoService.class, transactionalIoService,
-                FlowVerificationRecipientService.class, flowVerificationRecipientService);
+                FlowVerificationService.class, flowVerificationService);
     }
 
     @Override
     public Collection<Class<? extends IFloodlightService>> getModuleDependencies() {
         return ImmutableList.of(
                 IFloodlightProviderService.class,
-                IOFSwitchService.class);
+                IOFSwitchService.class,
+                IThreadPoolService.class,
+                KafkaMessageProducer.class,
+                PathVerificationService.class);
     }
 
     @Override
@@ -47,6 +53,6 @@ public class KildaModule implements IFloodlightModule {
     @Override
     public void startUp(FloodlightModuleContext context) throws FloodlightModuleException {
         transactionalIoService.init(context);
-        flowVerificationRecipientService.init(context);
+        flowVerificationService.init(context);
     }
 }

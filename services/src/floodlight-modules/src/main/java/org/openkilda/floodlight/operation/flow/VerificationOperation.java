@@ -2,6 +2,7 @@ package org.openkilda.floodlight.operation.flow;
 
 import org.openkilda.floodlight.operation.Operation;
 import org.openkilda.floodlight.operation.OperationContext;
+import org.openkilda.messaging.command.flow.FlowVerifycationRequest;
 import org.openkilda.messaging.model.Flow;
 
 import net.floodlightcontroller.core.IOFSwitch;
@@ -11,17 +12,17 @@ import org.projectfloodlight.openflow.types.DatapathId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class VerificationOperation extends Operation {
+public class VerificationOperation extends VerificationOperationCommon {
     private static final Logger logger = LoggerFactory.getLogger(VerificationOperation.class);
 
-    private final Flow flow;
+    private final FlowVerifycationRequest verificationRequest;
 
     private final IOFSwitchService switchService;
 
-    public VerificationOperation(OperationContext context, Flow flow) {
+    public VerificationOperation(OperationContext context, FlowVerifycationRequest verificationRequest) {
         super(context);
 
-        this.flow = flow;
+        this.verificationRequest = verificationRequest;
 
         FloodlightModuleContext moduleContext = getContext().getModuleContext();
         switchService = moduleContext.getServiceImpl(IOFSwitchService.class);
@@ -34,21 +35,21 @@ public class VerificationOperation extends Operation {
     }
 
     private void makeSendOperation() {
-        if (!isOwnSwitch(flow.getSourceSwitch())) {
+        if (!isOwnSwitch(verificationRequest.getFlow().getSourceSwitch())) {
             logger.debug("Switch {} is not under our control, do not produce flow verification send request");
             return;
         }
 
-        startSubOperation(new VerificationSendOperation(getContext(), flow));
+        startSubOperation(new VerificationSendOperation(getContext(), verificationRequest));
     }
 
     private void makeReceiveOperation() {
-        if (!isOwnSwitch(flow.getDestinationSwitch())) {
+        if (!isOwnSwitch(verificationRequest.getFlow().getDestinationSwitch())) {
             logger.debug("Switch {} is not under our control, do not produce flow verification receive handler");
             return;
         }
 
-        startSubOperation(new VerificationReceiveOperation(getContext(), flow));
+        startSubOperation(new VerificationListenOperation(getContext(), verificationRequest));
     }
 
     private boolean isOwnSwitch(String switchId) {
