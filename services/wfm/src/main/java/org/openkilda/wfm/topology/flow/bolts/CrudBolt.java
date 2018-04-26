@@ -20,17 +20,6 @@ import static org.openkilda.messaging.Utils.MAPPER;
 import static org.openkilda.messaging.info.flow.FlowOperation.DELETE;
 import static org.openkilda.messaging.info.flow.FlowOperation.UPDATE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.annotations.VisibleForTesting;
-import org.apache.storm.state.InMemoryKeyValueState;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.topology.base.BaseStatefulBolt;
-import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
-import org.apache.commons.lang.StringUtils;
-import org.neo4j.cypher.InvalidArgumentException;
 import org.openkilda.messaging.Destination;
 import org.openkilda.messaging.Message;
 import org.openkilda.messaging.Utils;
@@ -83,6 +72,19 @@ import org.openkilda.wfm.topology.flow.StreamType;
 import org.openkilda.wfm.topology.flow.utils.BidirectionalFlow;
 import org.openkilda.wfm.topology.flow.validation.FlowValidationException;
 import org.openkilda.wfm.topology.flow.validation.FlowValidator;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang.StringUtils;
+import org.apache.storm.state.InMemoryKeyValueState;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.topology.base.BaseStatefulBolt;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
+import org.neo4j.cypher.InvalidArgumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +105,12 @@ public class CrudBolt
         extends BaseStatefulBolt<InMemoryKeyValueState<String, FlowCache>>
         implements ICtrlBolt {
 
+    public static final String FIELD_ID_FLOW_ID = Utils.FLOW_ID;
+    public static final String FIELD_ID_BIFLOW = "biflow";
+
     public static final String STREAM_ID_CTRL = "ctrl";
+    public static final Fields FIELDS_SET_VERIFICATION = new Fields(
+            FIELD_ID_FLOW_ID, FIELD_ID_BIFLOW, AbstractTopology.MESSAGE_FIELD);
 
     /**
      * The logger.
@@ -171,6 +178,7 @@ public class CrudBolt
         outputFieldsDeclarer.declareStream(StreamType.STATUS.toString(), AbstractTopology.fieldMessage);
         outputFieldsDeclarer.declareStream(StreamType.RESPONSE.toString(), AbstractTopology.fieldMessage);
         outputFieldsDeclarer.declareStream(StreamType.CACHE_SYNC.toString(), AbstractTopology.fieldMessage);
+        outputFieldsDeclarer.declareStream(StreamType.VERIFICATION.toString(), FIELDS_SET_VERIFICATION);
         outputFieldsDeclarer.declareStream(StreamType.ERROR.toString(), FlowTopology.fieldsMessageErrorType);
         // FIXME(dbogun): use proper tuple format
         outputFieldsDeclarer.declareStream(STREAM_ID_CTRL, AbstractTopology.fieldMessage);
@@ -251,6 +259,9 @@ public class CrudBolt
                             break;
                         case CACHE_SYNC:
                             handleCacheSyncRequest(cmsg, tuple);
+                            break;
+                        case VERIFICATION:
+                            handleVerificationRequest(tuple, flowId);
                             break;
                         case READ:
                             if (flowId != null) {
@@ -440,6 +451,12 @@ public class CrudBolt
         Values northbound = new Values(new InfoMessage(new FlowCacheSyncResponse(results),
                 message.getTimestamp(), message.getCorrelationId(), Destination.NORTHBOUND));
         outputCollector.emit(StreamType.RESPONSE.toString(), tuple, northbound);
+    }
+
+    private void handleVerificationRequest(Tuple tuple, String flowId) {
+        ImmutablePair<Flow, Flow> biFlow = flowCache.getFlow(flowId);
+        Message message = (Message) tuple.getValueByField(AbstractTopology.MESSAGE_FIELD);
+        outputCollector.emit(StreamType.VERIFICATION.toString(), tuple, new Values(flowId, biFlow, message));
     }
 
     /**

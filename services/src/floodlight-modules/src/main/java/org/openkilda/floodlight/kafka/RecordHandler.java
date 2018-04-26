@@ -6,6 +6,8 @@ import static java.util.Arrays.asList;
 
 import org.openkilda.floodlight.converter.IOFSwitchConverter;
 import org.openkilda.floodlight.converter.OFFlowStatsConverter;
+import org.openkilda.floodlight.operation.OperationContext;
+import org.openkilda.floodlight.operation.flow.VerificationOperation;
 import org.openkilda.floodlight.switchmanager.ISwitchManager;
 import org.openkilda.floodlight.switchmanager.MeterPool;
 import org.openkilda.floodlight.switchmanager.SwitchOperationException;
@@ -18,6 +20,7 @@ import org.openkilda.messaging.command.discovery.DiscoverIslCommandData;
 import org.openkilda.messaging.command.discovery.DiscoverPathCommandData;
 import org.openkilda.messaging.command.discovery.NetworkCommandData;
 import org.openkilda.messaging.command.flow.BaseInstallFlow;
+import org.openkilda.messaging.command.flow.FlowVerificationRequest;
 import org.openkilda.messaging.command.flow.InstallEgressFlow;
 import org.openkilda.messaging.command.flow.InstallIngressFlow;
 import org.openkilda.messaging.command.flow.InstallOneSwitchFlow;
@@ -83,8 +86,7 @@ class RecordHandler implements Runnable {
         final Destination replyDestination = getDestinationForTopic(replyToTopic);
 
         try {
-            CommandData data = message.getData();
-            handleCommand(message, data, replyToTopic, replyDestination);
+            handleCommand(message, replyToTopic, replyDestination);
         } catch (FlowCommandException e) {
             ErrorMessage error = new ErrorMessage(
                     e.makeErrorResponse(),
@@ -95,8 +97,12 @@ class RecordHandler implements Runnable {
         }
     }
 
-    private void handleCommand(CommandMessage message, CommandData data, String replyToTopic,
-            Destination replyDestination) throws FlowCommandException {
+    private void handleCommand(CommandMessage message, String replyToTopic, Destination replyDestination)
+            throws FlowCommandException {
+
+        CommandData data = message.getData();
+        OperationContext opContext = new OperationContext(context.getModuleContext(), message.getCorrelationId());
+
         if (data instanceof DiscoverIslCommandData) {
             doDiscoverIslCommand(data);
         } else if (data instanceof DiscoverPathCommandData) {
@@ -123,6 +129,8 @@ class RecordHandler implements Runnable {
             doDumpRulesRequest(message, replyToTopic);
         } else if (data instanceof InstallMissedFlowsRequest) {
             doSyncRulesRequest(message);
+        } else if (data instanceof FlowVerificationRequest) {
+            doFlowVerificationRequest(opContext, (FlowVerificationRequest) data);
         } else {
             logger.error("unknown data type: {}", data.toString());
         }
@@ -553,6 +561,11 @@ class RecordHandler implements Runnable {
                 logger.error("Error during flow installation", e);
             }
         }
+    }
+
+    private void doFlowVerificationRequest(OperationContext opContext, FlowVerificationRequest request) {
+        VerificationOperation verification = new VerificationOperation(opContext, request);
+        verification.run();
     }
 
     private long allocateMeterId(Long meterId, String switchId, String flowId, Long cookie) {

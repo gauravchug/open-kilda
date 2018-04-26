@@ -37,7 +37,8 @@ public enum ComponentType {
     /**
      * OpenFlow Speaker kafka spout. Receives OpenFlow Speaker responses.
      */
-    SPEAKER_KAFKA_SPOUT,
+    SPEAKER_KAFKA_SPOUT,  // FIXME(surabujin): invalid? usage
+    SPEAKER_SPOUT,
 
     /**
      * Northbound kafka bolt. Sends Northbound responses.
@@ -96,5 +97,8 @@ public enum ComponentType {
 
     LCM_SPOUT,
     LCM_FLOW_SYNC_BOLT,
-    TOPOLOGY_ENGINE_OUTPUT
+    TOPOLOGY_ENGINE_OUTPUT,
+
+    VERIFICATION_BOLT,
+    VERIFICATION_JOINT_BOLT
 }

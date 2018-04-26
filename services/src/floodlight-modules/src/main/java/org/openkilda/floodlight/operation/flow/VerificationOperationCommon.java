@@ -5,7 +5,7 @@ import org.openkilda.floodlight.operation.Operation;
 import org.openkilda.floodlight.operation.OperationContext;
 import org.openkilda.messaging.Topic;
 import org.openkilda.messaging.info.InfoMessage;
-import org.openkilda.messaging.info.flow.FlowVerificationResponse;
+import org.openkilda.messaging.info.flow.UniFlowVerificationResponse;
 
 abstract class VerificationOperationCommon extends Operation {
     private final KafkaMessageProducer kafkaProducer;
@@ -15,7 +15,7 @@ abstract class VerificationOperationCommon extends Operation {
         kafkaProducer = getContext().getModuleContext().getServiceImpl(KafkaMessageProducer.class);
     }
 
-    protected void sendResponse(FlowVerificationResponse response) {
+    protected void sendResponse(UniFlowVerificationResponse response) {
         InfoMessage message = new InfoMessage(response, System.currentTimeMillis(), getContext().getCorrelationId());
         kafkaProducer.postMessage(Topic.FLOW, message);
     }

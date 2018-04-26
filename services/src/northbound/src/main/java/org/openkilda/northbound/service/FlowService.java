@@ -23,6 +23,7 @@ import org.openkilda.messaging.payload.flow.FlowPathPayload;
 import org.openkilda.messaging.payload.flow.FlowPayload;
 import org.openkilda.messaging.payload.flow.FlowReroutePayload;
 import org.openkilda.northbound.dto.flows.FlowValidationDto;
+import org.openkilda.northbound.dto.flows.VerificationOutput;
 
 import java.util.List;
 
@@ -132,6 +133,8 @@ public interface FlowService extends BasicService {
      * @throws java.nio.file.InvalidPathException if the flow doesn't return a path and it should.
      */
     List<FlowValidationDto> validateFlow(final String flowId);
+
+    VerificationOutput verifyFlow(String flowId);
 
     /**
      * Sync the FlowCache in the flow topology (in case it is out of sync.

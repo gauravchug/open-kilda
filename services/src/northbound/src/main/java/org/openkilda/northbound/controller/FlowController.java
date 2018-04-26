@@ -18,11 +18,6 @@ package org.openkilda.northbound.controller;
 import static org.openkilda.messaging.Utils.EXTRA_AUTH;
 import static org.openkilda.messaging.Utils.FLOW_ID;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import org.openkilda.messaging.command.flow.SynchronizeCacheAction;
 import org.openkilda.messaging.error.MessageError;
 import org.openkilda.messaging.info.flow.FlowInfoData;
@@ -31,9 +26,16 @@ import org.openkilda.messaging.payload.flow.FlowIdStatusPayload;
 import org.openkilda.messaging.payload.flow.FlowPathPayload;
 import org.openkilda.messaging.payload.flow.FlowPayload;
 import org.openkilda.northbound.dto.flows.FlowValidationDto;
+import org.openkilda.northbound.dto.flows.VerificationOutput;
 import org.openkilda.northbound.service.BatchResults;
 import org.openkilda.northbound.service.FlowService;
 import org.openkilda.northbound.utils.ExtraAuthRequired;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -346,6 +348,16 @@ public class FlowController {
             response = ResponseEntity.notFound().build();
         }
         return response;
+    }
+
+    @ApiOperation(
+            value = "Verify flow - using special network packet that is being routed in the same way as client traffic")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response = VerificationOutput.class, message = "Operation is successful")})
+    @RequestMapping(path = "/flows/{flow_id}/verify", method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<VerificationOutput> verifyFlow(@PathVariable("flow_id") String flowId) {
+        return ResponseEntity.ok(flowService.verifyFlow(flowId));
     }
 
     /**

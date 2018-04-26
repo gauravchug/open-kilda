@@ -16,11 +16,15 @@
 package org.openkilda.northbound.utils;
 
 import org.openkilda.messaging.info.event.PathInfoData;
+import org.openkilda.messaging.info.flow.FlowVerificationErrorCode;
+import org.openkilda.messaging.info.flow.FlowVerificationResponse;
 import org.openkilda.messaging.model.Flow;
 import org.openkilda.messaging.payload.flow.FlowEndpointPayload;
 import org.openkilda.messaging.payload.flow.FlowPathPayload;
 import org.openkilda.messaging.payload.flow.FlowPayload;
 import org.openkilda.messaging.payload.flow.FlowReroutePayload;
+import org.openkilda.northbound.dto.flows.UniFlowVerificationOutput;
+import org.openkilda.northbound.dto.flows.VerificationOutput;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -103,5 +107,39 @@ public final class Converter {
      */
     public static FlowReroutePayload buildReroutePayload(String flowId, PathInfoData path, boolean rerouted) {
         return new FlowReroutePayload(flowId, path, rerouted);
+    }
+
+    public static VerificationOutput buildVerificationOutput(FlowVerificationResponse response) {
+        return VerificationOutput.builder()
+                .flowId(response.getFlowId())
+                .forward(UniFlowVerificationOutput.builder()
+                        .pingSuccess(response.getForward().isPingSuccess())
+                        .error(convertVerificationError(response.getForward().getError()))
+                        .build())
+                .reverse(UniFlowVerificationOutput.builder()
+                        .pingSuccess(response.getReverse().isPingSuccess())
+                        .error(convertVerificationError(response.getReverse().getError()))
+                        .build())
+                .build();
+    }
+
+    private static String convertVerificationError(FlowVerificationErrorCode error) {
+        if (error == null) {
+            return null;
+        }
+
+        String message;
+        switch (error) {
+            case TIMEOUT:
+                message = "No ping for reasonable time";
+                break;
+            case WRITE_FAILURE:
+                message = "Can't send ping";
+                break;
+            default:
+                message = error.toString();
+        }
+
+        return message;
     }
 }

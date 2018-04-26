@@ -1,14 +1,15 @@
 package org.openkilda.floodlight.operation.flow;
 
-import net.floodlightcontroller.threadpool.IThreadPoolService;
-import org.openkilda.floodlight.service.FlowVerificationService;
+import org.openkilda.floodlight.model.flow.VerificationData;
 import org.openkilda.floodlight.operation.OperationContext;
-import org.openkilda.messaging.command.flow.FlowVerifycationRequest;
+import org.openkilda.floodlight.service.FlowVerificationService;
+import org.openkilda.messaging.command.flow.FlowVerificationRequest;
 import org.openkilda.messaging.info.flow.FlowVerificationErrorCode;
-import org.openkilda.messaging.info.flow.FlowVerificationResponse;
+import org.openkilda.messaging.info.flow.UniFlowVerificationResponse;
 import org.openkilda.messaging.model.Flow;
 
 import net.floodlightcontroller.core.module.FloodlightModuleContext;
+import net.floodlightcontroller.threadpool.IThreadPoolService;
 import org.projectfloodlight.openflow.types.DatapathId;
 
 import java.util.concurrent.TimeUnit;
@@ -16,13 +17,13 @@ import java.util.concurrent.TimeUnit;
 public class VerificationListenOperation extends VerificationOperationCommon {
     private static int TIMEOUT_SECONDS = 32;
 
-    private final FlowVerifycationRequest verificationRequest;
+    private final FlowVerificationRequest verificationRequest;
     private final VerificationData verificationData;
 
     private final FlowVerificationService flowVerificationService;
     private final IThreadPoolService scheduler;
 
-    public VerificationListenOperation(OperationContext context, FlowVerifycationRequest verificationRequest) {
+    public VerificationListenOperation(OperationContext context, FlowVerificationRequest verificationRequest) {
         super(context);
         this.verificationRequest = verificationRequest;
 
@@ -50,7 +51,7 @@ public class VerificationListenOperation extends VerificationOperationCommon {
             return false;
         }
 
-        FlowVerificationResponse response = new FlowVerificationResponse(verificationRequest.getFlow());
+        UniFlowVerificationResponse response = new UniFlowVerificationResponse(verificationRequest.getFlow());
         sendResponse(response);
 
         return true;
@@ -59,7 +60,7 @@ public class VerificationListenOperation extends VerificationOperationCommon {
     private void timeout() {
         flowVerificationService.unsubscribe(this);
 
-        FlowVerificationResponse response = new FlowVerificationResponse(
+        UniFlowVerificationResponse response = new UniFlowVerificationResponse(
                 verificationRequest.getFlow(), FlowVerificationErrorCode.TIMEOUT);
         sendResponse(response);
     }

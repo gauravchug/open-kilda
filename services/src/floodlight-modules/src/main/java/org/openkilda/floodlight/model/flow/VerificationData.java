@@ -1,11 +1,11 @@
-package org.openkilda.floodlight.operation.flow;
+package org.openkilda.floodlight.model.flow;
 
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openkilda.floodlight.exc.CorruptedNetworkDataException;
-import org.openkilda.messaging.command.flow.FlowVerifycationRequest;
+import org.openkilda.messaging.command.flow.FlowVerificationRequest;
 import org.projectfloodlight.openflow.types.DatapathId;
 
 import java.util.UUID;
@@ -39,7 +39,7 @@ public class VerificationData {
         return data;
     }
 
-    public static VerificationData of(FlowVerifycationRequest verifycationRequest) {
+    public static VerificationData of(FlowVerificationRequest verifycationRequest) {
         DatapathId source = DatapathId.of(verifycationRequest.getFlow().getSourceSwitch());
         DatapathId dest = DatapathId.of(verifycationRequest.getFlow().getDestinationSwitch());
         return new VerificationData(source, dest, verifycationRequest.getPacketId());

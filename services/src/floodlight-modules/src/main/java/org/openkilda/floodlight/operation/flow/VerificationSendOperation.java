@@ -12,17 +12,17 @@ import net.floodlightcontroller.util.OFMessageUtils;
 import org.openkilda.floodlight.IoRecord;
 import org.openkilda.floodlight.IoService;
 import org.openkilda.floodlight.SwitchUtils;
-import org.openkilda.floodlight.operation.Operation;
+import org.openkilda.floodlight.model.flow.VerificationData;
 import org.openkilda.floodlight.operation.OperationContext;
 import org.openkilda.floodlight.pathverification.PathVerificationService;
 import org.openkilda.floodlight.service.FlowVerificationService;
 import org.openkilda.floodlight.switchmanager.OFInstallException;
 import org.openkilda.floodlight.utils.DataSignature;
-import org.openkilda.messaging.command.flow.FlowVerifycationRequest;
+import org.openkilda.messaging.command.flow.FlowVerificationRequest;
 
 import net.floodlightcontroller.core.module.FloodlightModuleContext;
 import org.openkilda.messaging.info.flow.FlowVerificationErrorCode;
-import org.openkilda.messaging.info.flow.FlowVerificationResponse;
+import org.openkilda.messaging.info.flow.UniFlowVerificationResponse;
 import org.openkilda.messaging.model.Flow;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
@@ -36,13 +36,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VerificationSendOperation extends VerificationOperationCommon {
-    private final FlowVerifycationRequest verificationRequest;
+    private final FlowVerificationRequest verificationRequest;
 
     private final IoService ioService;
     private final SwitchUtils switchUtils;
     private final DataSignature signature;
 
-    public VerificationSendOperation(OperationContext context, FlowVerifycationRequest verificationRequest) {
+    public VerificationSendOperation(OperationContext context, FlowVerificationRequest verificationRequest) {
         super(context);
         this.verificationRequest = verificationRequest;
 
@@ -65,7 +65,7 @@ public class VerificationSendOperation extends VerificationOperationCommon {
         try {
             ioService.push(this, ImmutableList.of(new IoRecord(sourceDpId, message)));
         } catch (OFInstallException e) {
-            FlowVerificationResponse response = new FlowVerificationResponse(
+            UniFlowVerificationResponse response = new UniFlowVerificationResponse(
                     flow, FlowVerificationErrorCode.WRITE_FAILURE);
             sendResponse(response);
         }
@@ -77,7 +77,7 @@ public class VerificationSendOperation extends VerificationOperationCommon {
             return;
         }
 
-        FlowVerificationResponse response = new FlowVerificationResponse(
+        UniFlowVerificationResponse response = new UniFlowVerificationResponse(
                 verificationRequest.getFlow(), FlowVerificationErrorCode.WRITE_FAILURE);
         sendResponse(response);
     }

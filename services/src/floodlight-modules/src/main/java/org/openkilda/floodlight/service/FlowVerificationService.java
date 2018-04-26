@@ -6,7 +6,7 @@ import net.floodlightcontroller.core.module.FloodlightModuleException;
 import org.openkilda.floodlight.SwitchUtils;
 import org.openkilda.floodlight.exc.CorruptedNetworkDataException;
 import org.openkilda.floodlight.exc.InvalidSingatureConfigurationException;
-import org.openkilda.floodlight.operation.flow.VerificationData;
+import org.openkilda.floodlight.model.flow.VerificationData;
 import org.openkilda.floodlight.operation.flow.VerificationListenOperation;
 import org.openkilda.floodlight.pathverification.PathVerificationService;
 
