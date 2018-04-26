@@ -187,7 +187,8 @@ public class FlowTopology extends AbstractTopology {
         builder.setBolt(ComponentType.SPEAKER_KAFKA_BOLT.toString(), speakerKafkaBolt, parallelism)
                 .shuffleGrouping(ComponentType.TRANSACTION_BOLT.toString(), StreamType.CREATE.toString())
                 .shuffleGrouping(ComponentType.TRANSACTION_BOLT.toString(), StreamType.DELETE.toString())
-                .shuffleGrouping(ComponentType.VERIFICATION_BOLT.toString(), VerificationBolt.STREAM_ID_REQUEST);
+                .shuffleGrouping(
+                        ComponentType.VERIFICATION_JOINT_BOLT.toString(), VerificationJointBolt.STREAM_ID_REQUEST);
 
         /*
          * Spout receives Speaker responses
@@ -232,7 +233,7 @@ public class FlowTopology extends AbstractTopology {
 
         builder.setBolt(ComponentType.VERIFICATION_JOINT_BOLT.toString(), new VerificationJointBolt(), parallelism)
                 .fieldsGrouping(
-                        ComponentType.VERIFICATION_BOLT.toString(), VerificationBolt.STREAM_ID_OUTPUT, fieldFlowId);
+                        ComponentType.VERIFICATION_BOLT.toString(), VerificationBolt.STREAM_ID_PROXY, fieldFlowId);
 
         /*
          * Error processing bolt

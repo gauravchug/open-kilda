@@ -18,7 +18,7 @@ import org.openkilda.floodlight.pathverification.PathVerificationService;
 import org.openkilda.floodlight.service.FlowVerificationService;
 import org.openkilda.floodlight.switchmanager.OFInstallException;
 import org.openkilda.floodlight.utils.DataSignature;
-import org.openkilda.messaging.command.flow.FlowVerificationRequest;
+import org.openkilda.messaging.command.flow.UniflowVerificationRequest;
 
 import net.floodlightcontroller.core.module.FloodlightModuleContext;
 import org.openkilda.messaging.info.flow.FlowVerificationErrorCode;
@@ -36,13 +36,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VerificationSendOperation extends VerificationOperationCommon {
-    private final FlowVerificationRequest verificationRequest;
+    private final UniflowVerificationRequest verificationRequest;
 
     private final IoService ioService;
     private final SwitchUtils switchUtils;
     private final DataSignature signature;
 
-    public VerificationSendOperation(OperationContext context, FlowVerificationRequest verificationRequest) {
+    public VerificationSendOperation(OperationContext context, UniflowVerificationRequest verificationRequest) {
         super(context);
         this.verificationRequest = verificationRequest;
 
@@ -66,7 +66,7 @@ public class VerificationSendOperation extends VerificationOperationCommon {
             ioService.push(this, ImmutableList.of(new IoRecord(sourceDpId, message)));
         } catch (OFInstallException e) {
             UniFlowVerificationResponse response = new UniFlowVerificationResponse(
-                    flow, FlowVerificationErrorCode.WRITE_FAILURE);
+                    verificationRequest.getPacketId(), flow, FlowVerificationErrorCode.WRITE_FAILURE);
             sendResponse(response);
         }
     }
@@ -78,7 +78,8 @@ public class VerificationSendOperation extends VerificationOperationCommon {
         }
 
         UniFlowVerificationResponse response = new UniFlowVerificationResponse(
-                verificationRequest.getFlow(), FlowVerificationErrorCode.WRITE_FAILURE);
+                verificationRequest.getPacketId(), verificationRequest.getFlow(),
+                FlowVerificationErrorCode.WRITE_FAILURE);
         sendResponse(response);
     }
 

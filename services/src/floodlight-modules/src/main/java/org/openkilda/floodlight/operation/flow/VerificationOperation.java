@@ -1,7 +1,7 @@
 package org.openkilda.floodlight.operation.flow;
 
 import org.openkilda.floodlight.operation.OperationContext;
-import org.openkilda.messaging.command.flow.FlowVerificationRequest;
+import org.openkilda.messaging.command.flow.UniflowVerificationRequest;
 
 import net.floodlightcontroller.core.IOFSwitch;
 import net.floodlightcontroller.core.internal.IOFSwitchService;
@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory;
 public class VerificationOperation extends VerificationOperationCommon {
     private static final Logger logger = LoggerFactory.getLogger(VerificationOperation.class);
 
-    private final FlowVerificationRequest verificationRequest;
+    private final UniflowVerificationRequest verificationRequest;
 
     private final IOFSwitchService switchService;
 
-    public VerificationOperation(OperationContext context, FlowVerificationRequest verificationRequest) {
+    public VerificationOperation(OperationContext context, UniflowVerificationRequest verificationRequest) {
         super(context);
 
         this.verificationRequest = verificationRequest;

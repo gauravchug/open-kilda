@@ -3,7 +3,7 @@ package org.openkilda.floodlight.operation.flow;
 import org.openkilda.floodlight.model.flow.VerificationData;
 import org.openkilda.floodlight.operation.OperationContext;
 import org.openkilda.floodlight.service.FlowVerificationService;
-import org.openkilda.messaging.command.flow.FlowVerificationRequest;
+import org.openkilda.messaging.command.flow.UniflowVerificationRequest;
 import org.openkilda.messaging.info.flow.FlowVerificationErrorCode;
 import org.openkilda.messaging.info.flow.UniFlowVerificationResponse;
 import org.openkilda.messaging.model.Flow;
@@ -17,13 +17,13 @@ import java.util.concurrent.TimeUnit;
 public class VerificationListenOperation extends VerificationOperationCommon {
     private static int TIMEOUT_SECONDS = 32;
 
-    private final FlowVerificationRequest verificationRequest;
+    private final UniflowVerificationRequest verificationRequest;
     private final VerificationData verificationData;
 
     private final FlowVerificationService flowVerificationService;
     private final IThreadPoolService scheduler;
 
-    public VerificationListenOperation(OperationContext context, FlowVerificationRequest verificationRequest) {
+    public VerificationListenOperation(OperationContext context, UniflowVerificationRequest verificationRequest) {
         super(context);
         this.verificationRequest = verificationRequest;
 
@@ -51,7 +51,8 @@ public class VerificationListenOperation extends VerificationOperationCommon {
             return false;
         }
 
-        UniFlowVerificationResponse response = new UniFlowVerificationResponse(verificationRequest.getFlow());
+        UniFlowVerificationResponse response = new UniFlowVerificationResponse(
+                verificationRequest.getPacketId(), verificationRequest.getFlow());
         sendResponse(response);
 
         return true;
@@ -61,7 +62,7 @@ public class VerificationListenOperation extends VerificationOperationCommon {
         flowVerificationService.unsubscribe(this);
 
         UniFlowVerificationResponse response = new UniFlowVerificationResponse(
-                verificationRequest.getFlow(), FlowVerificationErrorCode.TIMEOUT);
+                verificationRequest.getPacketId(), verificationRequest.getFlow(), FlowVerificationErrorCode.TIMEOUT);
         sendResponse(response);
     }
 

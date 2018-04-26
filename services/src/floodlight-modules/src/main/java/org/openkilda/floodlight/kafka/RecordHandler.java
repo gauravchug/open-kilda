@@ -20,7 +20,7 @@ import org.openkilda.messaging.command.discovery.DiscoverIslCommandData;
 import org.openkilda.messaging.command.discovery.DiscoverPathCommandData;
 import org.openkilda.messaging.command.discovery.NetworkCommandData;
 import org.openkilda.messaging.command.flow.BaseInstallFlow;
-import org.openkilda.messaging.command.flow.FlowVerificationRequest;
+import org.openkilda.messaging.command.flow.UniflowVerificationRequest;
 import org.openkilda.messaging.command.flow.InstallEgressFlow;
 import org.openkilda.messaging.command.flow.InstallIngressFlow;
 import org.openkilda.messaging.command.flow.InstallOneSwitchFlow;
@@ -129,8 +129,8 @@ class RecordHandler implements Runnable {
             doDumpRulesRequest(message, replyToTopic);
         } else if (data instanceof InstallMissedFlowsRequest) {
             doSyncRulesRequest(message);
-        } else if (data instanceof FlowVerificationRequest) {
-            doFlowVerificationRequest(opContext, (FlowVerificationRequest) data);
+        } else if (data instanceof UniflowVerificationRequest) {
+            doFlowVerificationRequest(opContext, (UniflowVerificationRequest) data);
         } else {
             logger.error("unknown data type: {}", data.toString());
         }
@@ -563,7 +563,7 @@ class RecordHandler implements Runnable {
         }
     }
 
-    private void doFlowVerificationRequest(OperationContext opContext, FlowVerificationRequest request) {
+    private void doFlowVerificationRequest(OperationContext opContext, UniflowVerificationRequest request) {
         VerificationOperation verification = new VerificationOperation(opContext, request);
         verification.run();
     }

@@ -28,7 +28,7 @@ import org.openkilda.messaging.command.flow.FlowPathRequest;
 import org.openkilda.messaging.command.flow.FlowRerouteRequest;
 import org.openkilda.messaging.command.flow.FlowStatusRequest;
 import org.openkilda.messaging.command.flow.FlowUpdateRequest;
-import org.openkilda.messaging.command.flow.FlowVerificationQuery;
+import org.openkilda.messaging.command.flow.FlowVerificationRequest;
 import org.openkilda.messaging.command.flow.FlowsGetRequest;
 import org.openkilda.messaging.command.flow.SynchronizeCacheAction;
 import org.openkilda.messaging.info.InfoMessage;
@@ -754,7 +754,7 @@ public class FlowServiceImpl implements FlowService {
 
     @Override
     public VerificationOutput verifyFlow(String flowId) {
-        FlowVerificationQuery query = new FlowVerificationQuery(flowId);
+        FlowVerificationRequest query = new FlowVerificationRequest(flowId);
 
         final String correlationId = RequestCorrelationId.getId();
         CommandMessage request = new CommandMessage(query, System.currentTimeMillis(), correlationId, Destination.WFM);

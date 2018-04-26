@@ -31,7 +31,7 @@ import org.openkilda.messaging.command.flow.FlowRerouteRequest;
 import org.openkilda.messaging.command.flow.FlowRestoreRequest;
 import org.openkilda.messaging.command.flow.FlowStatusRequest;
 import org.openkilda.messaging.command.flow.FlowUpdateRequest;
-import org.openkilda.messaging.command.flow.FlowVerificationQuery;
+import org.openkilda.messaging.command.flow.FlowVerificationRequest;
 import org.openkilda.messaging.command.flow.FlowsGetRequest;
 import org.openkilda.messaging.info.InfoData;
 import org.openkilda.messaging.info.InfoMessage;
@@ -207,8 +207,8 @@ public class SplitterBolt extends BaseRichBolt {
 
                 values = new Values(message, null);
                 outputCollector.emit(StreamType.CACHE_SYNC.toString(), tuple, values);
-            } else if (data instanceof FlowVerificationQuery) {
-                String flowId = ((FlowVerificationQuery) data).getFlowId();
+            } else if (data instanceof FlowVerificationRequest) {
+                String flowId = ((FlowVerificationRequest) data).getFlowId();
                 logger.info("Flow {} verification request", flowId);
 
                 outputCollector.emit(StreamType.VERIFICATION.toString(), tuple, new Values(message, flowId));
