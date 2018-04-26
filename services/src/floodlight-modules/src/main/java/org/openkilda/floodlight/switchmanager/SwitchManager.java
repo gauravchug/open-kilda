@@ -19,7 +19,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.openkilda.floodlight.pathverification.PathVerificationService.VERIFICATION_BCAST_PACKET_DST;
-import static org.openkilda.messaging.Utils.DEFAULT_CORRELATION_ID;
 import static org.openkilda.messaging.Utils.ETH_TYPE;
 import static org.projectfloodlight.openflow.protocol.OFVersion.OF_12;
 import static org.projectfloodlight.openflow.protocol.OFVersion.OF_13;
@@ -36,6 +35,8 @@ import net.floodlightcontroller.restserver.IRestApiService;
 import net.floodlightcontroller.util.FlowModUtils;
 import org.openkilda.floodlight.kafka.KafkaMessageProducer;
 import org.openkilda.floodlight.switchmanager.web.SwitchManagerWebRoutable;
+import org.openkilda.floodlight.utils.CorrelationContext;
+import org.openkilda.floodlight.utils.NewCorrelationContext;
 import org.openkilda.messaging.Destination;
 import org.openkilda.messaging.Message;
 import org.openkilda.messaging.Topic;
@@ -81,7 +82,6 @@ import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
-import org.projectfloodlight.openflow.types.TableId;
 import org.projectfloodlight.openflow.types.U64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -214,13 +214,14 @@ public class SwitchManager implements IFloodlightModule, IFloodlightService, ISw
      * {@inheritDoc}
      */
     @Override
+    @NewCorrelationContext
     public Command receive(IOFSwitch sw, OFMessage msg, FloodlightContext cntx) {
         logger.debug("OF_ERROR: {}", msg);
         // TODO: track xid for flow id
         if (OFType.ERROR.equals(msg.getType())) {
             ErrorMessage error = new ErrorMessage(
                     new ErrorData(ErrorType.INTERNAL_ERROR, ((OFErrorMsg) msg).getErrType().toString(), null),
-                    System.currentTimeMillis(), DEFAULT_CORRELATION_ID, Destination.WFM_TRANSACTION);
+                    System.currentTimeMillis(), CorrelationContext.getId(), Destination.WFM_TRANSACTION);
             // TODO: Most/all commands are flow related, but not all. 'kilda.flow' might
             // not be the best place to send a generic error.
             kafkaProducer.postMessage("kilda.flow", error);
