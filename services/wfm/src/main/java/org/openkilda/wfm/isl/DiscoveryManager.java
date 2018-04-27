@@ -178,7 +178,7 @@ public class DiscoveryManager {
             DiscoveryNode subject = subjectList.get(0);
             if (subject.isFoundIsl() && subject.getConsecutiveFailure() == 0){
                 // This is the first failure for an ISL. That is a state change.
-                // IF this isn't an ISL and we receive a failure, that isn't a state change.
+                // IF this isn't an ISL and we consumeResponse a failure, that isn't a state change.
                 stateChanged = true;
                 logger.info("ISL IS DOWN (GOT RESPONSE): {}", subject);
             }

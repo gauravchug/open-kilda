@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * This class is mostly an example of how to startup zookeeper/kafka and send/receive messages.
+ * This class is mostly an example of how to startup zookeeper/kafka and send/consumeResponse messages.
  * It should be useful when developing Storm Topologies that have a Kafka Spout
  */
 public class SimpleKafkaTest {

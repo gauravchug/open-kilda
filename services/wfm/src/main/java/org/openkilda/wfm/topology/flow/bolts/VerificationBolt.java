@@ -37,15 +37,15 @@ public class VerificationBolt extends AbstractBolt {
         String source = input.getSourceComponent();
 
         if (source.equals(ComponentType.CRUD_BOLT.toString())) {
-            producePings(input);
+            proxyRequest(input);
         } else if (source.equals(ComponentType.SPEAKER_SPOUT.toString())) {
-            consumerPingReply(input);
+            consumePingReply(input);
         } else {
             logger.warn("Unexpected input from {} - is topology changes without code change?", source);
         }
     }
 
-    private void producePings(Tuple input) {
+    private void proxyRequest(Tuple input) {
         String flowId = input.getStringByField(CrudBolt.FIELD_ID_FLOW_ID);
 
         Values proxyData = new Values(
@@ -55,7 +55,7 @@ public class VerificationBolt extends AbstractBolt {
         getOutput().emit(STREAM_ID_PROXY, input, proxyData);
     }
 
-    private void consumerPingReply(Tuple input) {
+    private void consumePingReply(Tuple input) {
         UniFlowVerificationResponse response;
         try {
             response = fetchUniFlowResponse(input);

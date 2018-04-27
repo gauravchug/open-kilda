@@ -33,7 +33,7 @@ public class UniFlowVerificationRequest extends CommandData {
         this.packetId = packetId;
     }
 
-    public UniFlowVerificationRequest(FlowDirection direction, Flow flow) {
+    public UniFlowVerificationRequest(Flow flow) {
         this(flow, null);
     }
 }
