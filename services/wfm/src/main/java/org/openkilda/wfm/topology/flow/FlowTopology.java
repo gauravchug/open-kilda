@@ -228,10 +228,13 @@ public class FlowTopology extends AbstractTopology {
                 createKafkaSpout(config.getKafkaSpeakerTopic(), ComponentType.SPEAKER_SPOUT.toString()));
 
         builder.setBolt(ComponentType.VERIFICATION_BOLT.toString(), new VerificationBolt(), parallelism)
+                // CrudBolt in chain required to locate BiFlow object
                 .shuffleGrouping(ComponentType.CRUD_BOLT.toString(), StreamType.VERIFICATION.toString())
+                // Match FL responses and extract flowId into separate tuple filer
                 .shuffleGrouping(ComponentType.SPEAKER_SPOUT.toString());
 
         builder.setBolt(ComponentType.VERIFICATION_JOINT_BOLT.toString(), new VerificationJointBolt(), parallelism)
+                // proxy all tuples via VerificationBolt to be able to use fieldsGrouping by flowId field
                 .fieldsGrouping(
                         ComponentType.VERIFICATION_BOLT.toString(), VerificationBolt.STREAM_ID_PROXY, fieldFlowId);
 

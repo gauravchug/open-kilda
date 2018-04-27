@@ -5,7 +5,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.openkilda.floodlight.exc.CorruptedNetworkDataException;
-import org.openkilda.messaging.command.flow.UniflowVerificationRequest;
+import org.openkilda.messaging.command.flow.UniFlowVerificationRequest;
 import org.projectfloodlight.openflow.types.DatapathId;
 
 import java.util.UUID;
@@ -39,7 +39,7 @@ public class VerificationData {
         return data;
     }
 
-    public static VerificationData of(UniflowVerificationRequest verifycationRequest) {
+    public static VerificationData of(UniFlowVerificationRequest verifycationRequest) {
         DatapathId source = DatapathId.of(verifycationRequest.getFlow().getSourceSwitch());
         DatapathId dest = DatapathId.of(verifycationRequest.getFlow().getDestinationSwitch());
         return new VerificationData(source, dest, verifycationRequest.getPacketId());

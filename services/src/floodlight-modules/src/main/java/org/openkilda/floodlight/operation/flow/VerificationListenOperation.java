@@ -3,7 +3,7 @@ package org.openkilda.floodlight.operation.flow;
 import org.openkilda.floodlight.model.flow.VerificationData;
 import org.openkilda.floodlight.operation.OperationContext;
 import org.openkilda.floodlight.service.FlowVerificationService;
-import org.openkilda.messaging.command.flow.UniflowVerificationRequest;
+import org.openkilda.messaging.command.flow.UniFlowVerificationRequest;
 import org.openkilda.messaging.info.flow.FlowVerificationErrorCode;
 import org.openkilda.messaging.info.flow.UniFlowVerificationResponse;
 import org.openkilda.messaging.model.Flow;
@@ -17,13 +17,13 @@ import java.util.concurrent.TimeUnit;
 public class VerificationListenOperation extends VerificationOperationCommon {
     private static int TIMEOUT_SECONDS = 32;
 
-    private final UniflowVerificationRequest verificationRequest;
+    private final UniFlowVerificationRequest verificationRequest;
     private final VerificationData verificationData;
 
     private final FlowVerificationService flowVerificationService;
     private final IThreadPoolService scheduler;
 
-    public VerificationListenOperation(OperationContext context, UniflowVerificationRequest verificationRequest) {
+    public VerificationListenOperation(OperationContext context, UniFlowVerificationRequest verificationRequest) {
         super(context);
         this.verificationRequest = verificationRequest;
 

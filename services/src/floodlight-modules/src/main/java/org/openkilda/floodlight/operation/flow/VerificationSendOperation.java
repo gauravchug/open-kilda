@@ -18,7 +18,7 @@ import org.openkilda.floodlight.pathverification.PathVerificationService;
 import org.openkilda.floodlight.service.FlowVerificationService;
 import org.openkilda.floodlight.switchmanager.OFInstallException;
 import org.openkilda.floodlight.utils.DataSignature;
-import org.openkilda.messaging.command.flow.UniflowVerificationRequest;
+import org.openkilda.messaging.command.flow.UniFlowVerificationRequest;
 
 import net.floodlightcontroller.core.module.FloodlightModuleContext;
 import org.openkilda.messaging.info.flow.FlowVerificationErrorCode;
@@ -36,13 +36,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VerificationSendOperation extends VerificationOperationCommon {
-    private final UniflowVerificationRequest verificationRequest;
+    private final UniFlowVerificationRequest verificationRequest;
 
     private final IoService ioService;
     private final SwitchUtils switchUtils;
     private final DataSignature signature;
 
-    public VerificationSendOperation(OperationContext context, UniflowVerificationRequest verificationRequest) {
+    public VerificationSendOperation(OperationContext context, UniFlowVerificationRequest verificationRequest) {
         super(context);
         this.verificationRequest = verificationRequest;
 

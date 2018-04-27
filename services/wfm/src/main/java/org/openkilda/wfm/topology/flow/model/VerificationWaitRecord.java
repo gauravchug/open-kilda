@@ -1,9 +1,10 @@
 package org.openkilda.wfm.topology.flow.model;
 
 import org.openkilda.messaging.command.flow.FlowDirection;
-import org.openkilda.messaging.command.flow.UniflowVerificationRequest;
+import org.openkilda.messaging.command.flow.UniFlowVerificationRequest;
 import org.openkilda.messaging.info.flow.FlowVerificationResponse;
 import org.openkilda.messaging.info.flow.UniFlowVerificationResponse;
+import org.openkilda.messaging.model.BiFlow;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +24,7 @@ public class VerificationWaitRecord {
         allSet.add(FlowDirection.REVERSE);
     }
 
-    public VerificationWaitRecord(UniflowVerificationRequest request) {
+    public VerificationWaitRecord(BiFlow request) {
         this.createTime = System.currentTimeMillis();
 
         this.response = FlowVerificationResponse.builder();

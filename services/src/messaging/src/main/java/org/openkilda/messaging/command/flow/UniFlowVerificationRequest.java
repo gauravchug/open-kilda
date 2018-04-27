@@ -14,7 +14,7 @@ import java.util.UUID;
 @Value
 @JsonSerialize
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UniflowVerificationRequest extends CommandData {
+public class UniFlowVerificationRequest extends CommandData {
     @JsonProperty("flow")
     private final Flow flow;
 
@@ -22,7 +22,7 @@ public class UniflowVerificationRequest extends CommandData {
     private final UUID packetId;
 
     @JsonCreator
-    public UniflowVerificationRequest(
+    public UniFlowVerificationRequest(
             @JsonProperty("flow") Flow flow,
             @JsonProperty("packet_id") UUID packetId) {
         this.flow = flow;
@@ -33,7 +33,7 @@ public class UniflowVerificationRequest extends CommandData {
         this.packetId = packetId;
     }
 
-    public UniflowVerificationRequest(FlowDirection direction, Flow flow) {
+    public UniFlowVerificationRequest(FlowDirection direction, Flow flow) {
         this(flow, null);
     }
 }

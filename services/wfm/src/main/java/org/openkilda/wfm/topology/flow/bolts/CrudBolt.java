@@ -50,6 +50,7 @@ import org.openkilda.messaging.info.flow.FlowRerouteResponse;
 import org.openkilda.messaging.info.flow.FlowResponse;
 import org.openkilda.messaging.info.flow.FlowStatusResponse;
 import org.openkilda.messaging.info.flow.FlowsResponse;
+import org.openkilda.messaging.model.BiFlow;
 import org.openkilda.messaging.model.Flow;
 import org.openkilda.messaging.model.ImmutablePair;
 import org.openkilda.messaging.payload.flow.FlowCacheSyncResults;
@@ -107,10 +108,11 @@ public class CrudBolt
 
     public static final String FIELD_ID_FLOW_ID = Utils.FLOW_ID;
     public static final String FIELD_ID_BIFLOW = "biflow";
+    public static final String FIELD_ID_MESSAGE = AbstractTopology.MESSAGE_FIELD;
 
     public static final String STREAM_ID_CTRL = "ctrl";
-    public static final Fields FIELDS_SET_VERIFICATION = new Fields(
-            FIELD_ID_FLOW_ID, FIELD_ID_BIFLOW, AbstractTopology.MESSAGE_FIELD);
+    public static final Fields STREAM_FIELDS_VERIFICATION = new Fields(
+            FIELD_ID_FLOW_ID, FIELD_ID_BIFLOW, FIELD_ID_MESSAGE);
 
     /**
      * The logger.
@@ -178,7 +180,7 @@ public class CrudBolt
         outputFieldsDeclarer.declareStream(StreamType.STATUS.toString(), AbstractTopology.fieldMessage);
         outputFieldsDeclarer.declareStream(StreamType.RESPONSE.toString(), AbstractTopology.fieldMessage);
         outputFieldsDeclarer.declareStream(StreamType.CACHE_SYNC.toString(), AbstractTopology.fieldMessage);
-        outputFieldsDeclarer.declareStream(StreamType.VERIFICATION.toString(), FIELDS_SET_VERIFICATION);
+        outputFieldsDeclarer.declareStream(StreamType.VERIFICATION.toString(), STREAM_FIELDS_VERIFICATION);
         outputFieldsDeclarer.declareStream(StreamType.ERROR.toString(), FlowTopology.fieldsMessageErrorType);
         // FIXME(dbogun): use proper tuple format
         outputFieldsDeclarer.declareStream(STREAM_ID_CTRL, AbstractTopology.fieldMessage);
@@ -454,7 +456,9 @@ public class CrudBolt
     }
 
     private void handleVerificationRequest(Tuple tuple, String flowId) {
-        ImmutablePair<Flow, Flow> biFlow = flowCache.getFlow(flowId);
+        ImmutablePair<Flow, Flow> flowPair = flowCache.getFlow(flowId);
+        BiFlow biFlow = new BiFlow(flowPair);
+
         Message message = (Message) tuple.getValueByField(AbstractTopology.MESSAGE_FIELD);
         outputCollector.emit(StreamType.VERIFICATION.toString(), tuple, new Values(flowId, biFlow, message));
     }
