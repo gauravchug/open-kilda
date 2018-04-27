@@ -15,6 +15,7 @@
 
 package org.openkilda.wfm.topology.event;
 
+import static java.lang.String.format;
 import static org.openkilda.messaging.Utils.MAPPER;
 import static org.openkilda.messaging.Utils.PAYLOAD;
 
@@ -59,10 +60,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -183,11 +181,13 @@ public class OFELinkBolt
             return;
         }
 
+        String correlationId = UUID.randomUUID().toString();
+
         if (!isCacheRequestSend)
         {
             // Only one message to FL needed
             isCacheRequestSend = true;
-            sendNetworkRequest(tuple);
+            sendNetworkRequest(tuple, correlationId);
         }
         else if (isReceivedCacheInfo)
         {
@@ -196,15 +196,18 @@ public class OFELinkBolt
             DiscoveryManager.Plan discoveryPlan = discovery.makeDiscoveryPlan();
             try {
                 for (DiscoveryManager.Node node : discoveryPlan.needDiscovery) {
-                    sendDiscoveryMessage(tuple, node);
+                    String msgCorrelationId = format("%s-%s:%s", correlationId, node.switchId, node.portId);
+                    sendDiscoveryMessage(tuple, node, msgCorrelationId);
                 }
 
                 for (DiscoveryManager.Node node : discoveryPlan.discoveryFailure) {
+                    String msgCorrelationId = format("%s-%s:%s-fail", correlationId, node.switchId, node.portId);
+
                     // this is somewhat incongruous - we send failure to TE, but we send
                     // discovery to FL ..
                     // Reality is that the handleDiscovery/handleFailure below does the work
                     //
-                    sendDiscoveryFailed(node.switchId, node.portId, tuple);
+                    sendDiscoveryFailed(node.switchId, node.portId, tuple, msgCorrelationId);
                 }
             } catch (IOException e) {
                 logger.error("Unable to encode message: {}", e);
@@ -215,13 +218,12 @@ public class OFELinkBolt
     /**
      * Send network dump request to FL
      */
-    private void sendNetworkRequest(Tuple tuple) {
+    private void sendNetworkRequest(Tuple tuple, String correlationId) {
         try {
             logger.debug("Send network dump request");
 
-            CommandMessage command = new CommandMessage(new NetworkCommandData(),
-                    System.currentTimeMillis(), Utils.SYSTEM_CORRELATION_ID,
-                    Destination.CONTROLLER);
+            CommandMessage command = new CommandMessage(new NetworkCommandData(), System.currentTimeMillis(),
+                    correlationId, Destination.CONTROLLER);
             String json = Utils.MAPPER.writeValueAsString(command);
             collector.emit(islDiscoveryTopic, tuple, new Values(PAYLOAD, json));
         }
@@ -234,8 +236,8 @@ public class OFELinkBolt
     /**
      * Helper method for sending an ISL Discovery Message
      */
-    private void sendDiscoveryMessage(Tuple tuple, DiscoveryManager.Node node) throws IOException {
-        String json = OFEMessageUtils.createIslDiscovery(node.switchId, node.portId);
+    private void sendDiscoveryMessage(Tuple tuple, DiscoveryManager.Node node, String correlationId) throws IOException {
+        String json = OFEMessageUtils.createIslDiscovery(node.switchId, node.portId, correlationId);
         logger.debug("LINK: Send ISL discovery command: {}", json);
         collector.emit(islDiscoveryTopic, tuple, new Values(PAYLOAD, json));
     }
@@ -397,8 +399,8 @@ public class OFELinkBolt
     //          - services/src/topology .. service/impl/IslServiceImpl .. service/IslService
     //          - services/src/topology .. messaging/kafka/KafkaMessageConsumer
     //          - services/src/pce .. NetworkCache .. FlowCache ..
-    private void sendDiscoveryFailed(String switchId, String portId, Tuple tuple) throws IOException {
-        String discoFail = OFEMessageUtils.createIslFail(switchId, portId);
+    private void sendDiscoveryFailed(String switchId, String portId, Tuple tuple, String correlationId) throws IOException {
+        String discoFail = OFEMessageUtils.createIslFail(switchId, portId, correlationId);
 //        Values dataVal = new Values(PAYLOAD, discoFail, switchId, portId, OFEMessageUtils.LINK_DOWN);
 //        collector.emit(topoEngTopic, tuple, dataVal);
         collector.emit(topoEngTopic, tuple, new Values(PAYLOAD, discoFail));
