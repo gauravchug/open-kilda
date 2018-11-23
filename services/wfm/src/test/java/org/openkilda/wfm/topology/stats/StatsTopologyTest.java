@@ -147,7 +147,7 @@ public class StatsTopologyTest extends StableAbstractStormTest {
                     .forEach(datapoint -> {
                         assertThat(datapoint.getTags().get("switchId"), is(switchId.toString().replaceAll(":", "")));
                         assertThat(datapoint.getTime(), is(timestamp));
-                        assertThat(datapoint.getMetric(), startsWith("pen.switch"));
+                        assertThat(datapoint.getMetric(), startsWith("sdn.switch"));
                     });
         });
     }
@@ -186,7 +186,7 @@ public class StatsTopologyTest extends StableAbstractStormTest {
                         assertThat(datapoint.getTags().get("switchid"),
                                 is(switchId.toOtsdFormat()));
                         assertThat(datapoint.getTime(), is(timestamp));
-                        assertThat(datapoint.getMetric(), is("pen.switch.meters"));
+                        assertThat(datapoint.getMetric(), is("sdn.switch.meters"));
                     });
         });
     }
@@ -251,7 +251,7 @@ public class StatsTopologyTest extends StableAbstractStormTest {
             tuples.stream()
                     .map(this::readFromJson)
                     .forEach(datapoint -> {
-                        if (datapoint.getMetric().equals("pen.flow.packets")) {
+                        if (datapoint.getMetric().equals("sdn.flow.packets")) {
                             assertThat(datapoint.getTags().get("direction"), is("forward"));
                         }
                         assertThat(datapoint.getTags().get("flowid"), is(flowId));

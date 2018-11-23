@@ -52,7 +52,7 @@ public class StatsProducer extends Abstract {
 
         PingMeters meters = pingContext.getMeters();
         Datapoint datapoint = new Datapoint(
-                "pen.flow.latency", pingContext.getTimestamp(), tags, meters.getNetworkLatency());
+                "sdn.flow.latency", pingContext.getTimestamp(), tags, meters.getNetworkLatency());
         emit(input, datapoint);
     }
 

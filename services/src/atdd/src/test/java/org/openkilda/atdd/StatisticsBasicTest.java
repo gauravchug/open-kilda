@@ -49,7 +49,7 @@ public class StatisticsBasicTest {
                 .target(opentsdbEndpoint)
                 .path("/api/query")
                 .queryParam("start", "24h-ago")
-                .queryParam("m", "sum:pen.switch.tx-bytes")
+                .queryParam("m", "sum:sdn.switch.tx-bytes")
                 .queryParam("timezone", "Australia/Melbourne")
                 .request().get();
 
