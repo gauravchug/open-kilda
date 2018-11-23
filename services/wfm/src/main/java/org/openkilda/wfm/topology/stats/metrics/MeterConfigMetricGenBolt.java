@@ -71,7 +71,7 @@ public class MeterConfigMetricGenBolt extends MetricGenBolt {
                     "switchid", switchId.toOtsdFormat(),
                     "meterId", meterId.toString()
             );
-            collector.emit(tuple("pen.switch.meters", timestamp, meterId, tags));
+            collector.emit(tuple("sdn.switch.meters", timestamp, meterId, tags));
         } catch (JsonEncodeException e) {
             LOGGER.error("Error during serialization of datapoint", e);
         }

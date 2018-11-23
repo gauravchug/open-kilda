@@ -338,7 +338,7 @@ export class DygraphService {
         for (var j = 0; j < data.length; j++) {
           var dataValues = typeof data[j] !== "undefined" ? data[j].dps : 0;
           var metric = typeof data[j] !== "undefined" ? data[j].metric : "";
-          if (metric !== "pen.flow.packets") {
+          if (metric !== "sdn.flow.packets") {
             metric = metric + "(switchid=" + data[j].tags.switchid + ", cookie="+data[j].tags['cookie']+")";
             labels.push(metric);
             var colorCode = this.getColorCode(j, color);
@@ -364,7 +364,7 @@ export class DygraphService {
               }
               k++;
             }
-          } else if (metric === "pen.flow.packets") {
+          } else if (metric === "sdn.flow.packets") {
             metric = metric + "(" + data[j].tags.flowid + ")";
             labels.push(metric);
             color.push("#aad200");

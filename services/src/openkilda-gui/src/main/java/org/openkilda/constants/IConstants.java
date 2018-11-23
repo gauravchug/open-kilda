@@ -227,53 +227,53 @@ public abstract class IConstants {
 
     public enum Metrics {
 
-        PEN_FLOW_BITS("Flow_bits", "pen.flow.bits"),
+        SDN_FLOW_BITS("Flow_bits", "sdn.flow.bits"),
 
-        PEN_FLOW_BYTES("Flow_bytes", "pen.flow.bytes"),
+        SDN_FLOW_BYTES("Flow_bytes", "sdn.flow.bytes"),
 
-        PEN_FLOW_PACKETS("Flow_packets", "pen.flow.packets"),
+        SDN_FLOW_PACKETS("Flow_packets", "sdn.flow.packets"),
 
-        PEN_FLOW_INGRESS_PACKETS("Flow_ingress_packets", "pen.flow.ingress.packets"),
+        SDN_FLOW_INGRESS_PACKETS("Flow_ingress_packets", "sdn.flow.ingress.packets"),
 
-        PEN_FLOW_RAW_PACKETS("Flow_raw_packets", "pen.flow.raw.packets"),
+        SDN_FLOW_RAW_PACKETS("Flow_raw_packets", "sdn.flow.raw.packets"),
         
-        PEN_FLOW_RAW_BITS("Flow_raw_bits", "pen.flow.raw.bits"),
+        SDN_FLOW_RAW_BITS("Flow_raw_bits", "sdn.flow.raw.bits"),
         
-        PEN_FLOW_RAW_BYTES("Flow_raw_bytes", "pen.flow.raw.bytes"),
+        SDN_FLOW_RAW_BYTES("Flow_raw_bytes", "sdn.flow.raw.bytes"),
 
-        PEN_FLOW_TABLEID("Flow_tableid", "pen.flow.tableid"),
+        SDN_FLOW_TABLEID("Flow_tableid", "sdn.flow.tableid"),
 
-        PEN_ISL_LATENCY("Isl_latency", "pen.isl.latency"),
+        SDN_ISL_LATENCY("Isl_latency", "sdn.isl.latency"),
 
-        PEN_SWITCH_COLLISIONS("Switch_collisions", "pen.switch.collisions"),
+        SDN_SWITCH_COLLISIONS("Switch_collisions", "sdn.switch.collisions"),
 
-        PEN_SWITCH_RX_CRC_ERROR("Switch_crcerror", "pen.switch.rx-crc-error"),
+        SDN_SWITCH_RX_CRC_ERROR("Switch_crcerror", "sdn.switch.rx-crc-error"),
 
-        PEN_SWITCH_RX_FRAME_ERROR("Switch_frameerror", "pen.switch.rx-frame-error"),
+        SDN_SWITCH_RX_FRAME_ERROR("Switch_frameerror", "sdn.switch.rx-frame-error"),
 
-        PEN_SWITCH_RX_OVER_ERROR("Switch_overerror", "pen.switch.rx-over-error"),
+        SDN_SWITCH_RX_OVER_ERROR("Switch_overerror", "sdn.switch.rx-over-error"),
 
-        PEN_SWITCH_RX_BITS("Switch_bits", "pen.switch.rx-bits"),
+        SDN_SWITCH_RX_BITS("Switch_bits", "sdn.switch.rx-bits"),
 
-        PEN_SWITCH_TX_BITS("Switch_bits", "pen.switch.tx-bits"),
+        SDN_SWITCH_TX_BITS("Switch_bits", "sdn.switch.tx-bits"),
 
-        PEN_SWITCH_RX_BYTES("Switch_bytes", "pen.switch.rx-bytes"),
+        SDN_SWITCH_RX_BYTES("Switch_bytes", "sdn.switch.rx-bytes"),
 
-        PEN_SWITCH_TX_BYTES("Switch_bytes", "pen.switch.tx-bytes"),
+        SDN_SWITCH_TX_BYTES("Switch_bytes", "sdn.switch.tx-bytes"),
 
-        PEN_SWITCH_RX_DROPPED("Switch_drops", "pen.switch.rx-dropped"),
+        SDN_SWITCH_RX_DROPPED("Switch_drops", "sdn.switch.rx-dropped"),
 
-        PEN_SWITCH_TX_DROPPED("Switch_drops", "pen.switch.tx-dropped"),
+        SDN_SWITCH_TX_DROPPED("Switch_drops", "sdn.switch.tx-dropped"),
 
-        PEN_SWITCH_RX_ERRORS("Switch_errors", "pen.switch.rx-errors"),
+        SDN_SWITCH_RX_ERRORS("Switch_errors", "sdn.switch.rx-errors"),
 
-        PEN_SWITCH_TX_ERRORS("Switch_errors", "pen.switch.tx-errors"),
+        SDN_SWITCH_TX_ERRORS("Switch_errors", "sdn.switch.tx-errors"),
 
-        PEN_SWITCH_TX_PACKETS("Switch_packets", "pen.switch.tx-packets"),
+        SDN_SWITCH_TX_PACKETS("Switch_packets", "sdn.switch.tx-packets"),
 
-        PEN_SWITCH_RX_PACKETS("Switch_packets", "pen.switch.rx-packets"),
+        SDN_SWITCH_RX_PACKETS("Switch_packets", "sdn.switch.rx-packets"),
 
-        PEN_SWITCH_STATE("Switch_state", "pen.switch.state");
+        SDN_SWITCH_STATE("Switch_state", "sdn.switch.state");
 
         private String tag;
         

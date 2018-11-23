@@ -188,7 +188,7 @@ public class StatsService {
     public String getFlowLossPacketStats(String startDate, String endDate, String downsample, String flowId,
             String direction) throws IntegrationException {
         return statsIntegrationService.getStats(startDate, endDate, downsample, null, null, flowId, null, null, null,
-                null, StatsType.FLOW_LOSS_PACKET, Metrics.PEN_FLOW_INGRESS_PACKETS.getTag().replace("Flow_", ""),
+                null, StatsType.FLOW_LOSS_PACKET, Metrics.SDN_FLOW_INGRESS_PACKETS.getTag().replace("Flow_", ""),
                 direction);
     }
 
@@ -249,7 +249,7 @@ public class StatsService {
                 if (!portStatsByPortNo.containsKey(port)) {
                     portStatsByPortNo.put(port, new HashMap<String, Double>());
                 }
-                portStatsByPortNo.get(port).put(stats.getMetric().replace("pen.switch.", ""),
+                portStatsByPortNo.get(port).put(stats.getMetric().replace("sdn.switch.", ""),
                         calculateHighestValue(stats.getDps()));
             }
         }

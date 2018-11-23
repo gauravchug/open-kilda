@@ -137,23 +137,23 @@ public class FlowMetricGenBolt extends MetricGenBolt {
         tags.put("flowid", flowId);
         tags.put("direction", FlowDirectionHelper.findDirection(entry.getCookie()).name().toLowerCase());
 
-        collector.emit(tuple("pen.flow.raw.packets", timestamp, entry.getPacketCount(), tags));
-        collector.emit(tuple("pen.flow.raw.bytes", timestamp, entry.getByteCount(), tags));
-        collector.emit(tuple("pen.flow.raw.bits", timestamp, entry.getByteCount() * 8, tags));
+        collector.emit(tuple("sdn.flow.raw.packets", timestamp, entry.getPacketCount(), tags));
+        collector.emit(tuple("sdn.flow.raw.bytes", timestamp, entry.getByteCount(), tags));
+        collector.emit(tuple("sdn.flow.raw.bits", timestamp, entry.getByteCount() * 8, tags));
     }
 
     private void emitIngressMetrics(FlowStatsEntry entry, long timestamp, Map<String, String> tags)
             throws JsonEncodeException {
-        collector.emit(tuple("pen.flow.ingress.packets", timestamp, entry.getPacketCount(), tags));
-        collector.emit(tuple("pen.flow.ingress.bytes", timestamp, entry.getByteCount(), tags));
-        collector.emit(tuple("pen.flow.ingress.bits", timestamp, entry.getByteCount() * 8, tags));
+        collector.emit(tuple("sdn.flow.ingress.packets", timestamp, entry.getPacketCount(), tags));
+        collector.emit(tuple("sdn.flow.ingress.bytes", timestamp, entry.getByteCount(), tags));
+        collector.emit(tuple("sdn.flow.ingress.bits", timestamp, entry.getByteCount() * 8, tags));
     }
 
     private void emitEgressMetrics(FlowStatsEntry entry, long timestamp, Map<String, String> tags)
             throws JsonEncodeException {
-        collector.emit(tuple("pen.flow.packets", timestamp, entry.getPacketCount(), tags));
-        collector.emit(tuple("pen.flow.bytes", timestamp, entry.getByteCount(), tags));
-        collector.emit(tuple("pen.flow.bits", timestamp, entry.getByteCount() * 8, tags));
+        collector.emit(tuple("sdn.flow.packets", timestamp, entry.getPacketCount(), tags));
+        collector.emit(tuple("sdn.flow.bytes", timestamp, entry.getByteCount(), tags));
+        collector.emit(tuple("sdn.flow.bits", timestamp, entry.getByteCount() * 8, tags));
     }
 
     private Map<String, String> makeFlowTags(FlowStatsEntry entry, String flowId) throws FlowCookieException {
