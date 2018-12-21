@@ -71,20 +71,20 @@ public class PortMetricGenBolt extends MetricGenBolt {
                     "port", String.valueOf(entry.getPortNo())
             );
 
-            collector.emit(tuple("pen.switch.rx-packets", timestamp, entry.getRxPackets(), tags));
-            collector.emit(tuple("pen.switch.tx-packets", timestamp, entry.getTxPackets(), tags));
-            collector.emit(tuple("pen.switch.rx-bytes", timestamp, entry.getRxBytes(), tags));
-            collector.emit(tuple("pen.switch.rx-bits", timestamp, entry.getRxBytes() * 8, tags));
-            collector.emit(tuple("pen.switch.tx-bytes", timestamp, entry.getTxBytes(), tags));
-            collector.emit(tuple("pen.switch.tx-bits", timestamp, entry.getTxBytes() * 8, tags));
-            collector.emit(tuple("pen.switch.rx-dropped", timestamp, entry.getRxDropped(), tags));
-            collector.emit(tuple("pen.switch.tx-dropped", timestamp, entry.getTxDropped(), tags));
-            collector.emit(tuple("pen.switch.rx-errors", timestamp, entry.getRxErrors(), tags));
-            collector.emit(tuple("pen.switch.tx-errors", timestamp, entry.getTxErrors(), tags));
-            collector.emit(tuple("pen.switch.rx-frame-error", timestamp, entry.getRxFrameErr(), tags));
-            collector.emit(tuple("pen.switch.rx-over-error", timestamp, entry.getRxOverErr(), tags));
-            collector.emit(tuple("pen.switch.rx-crc-error", timestamp, entry.getRxCrcErr(), tags));
-            collector.emit(tuple("pen.switch.collisions", timestamp, entry.getCollisions(), tags));
+            collector.emit(tuple("sdn.switch.rx-packets", timestamp, entry.getRxPackets(), tags));
+            collector.emit(tuple("sdn.switch.tx-packets", timestamp, entry.getTxPackets(), tags));
+            collector.emit(tuple("sdn.switch.rx-bytes", timestamp, entry.getRxBytes(), tags));
+            collector.emit(tuple("sdn.switch.rx-bits", timestamp, entry.getRxBytes() * 8, tags));
+            collector.emit(tuple("sdn.switch.tx-bytes", timestamp, entry.getTxBytes(), tags));
+            collector.emit(tuple("sdn.switch.tx-bits", timestamp, entry.getTxBytes() * 8, tags));
+            collector.emit(tuple("sdn.switch.rx-dropped", timestamp, entry.getRxDropped(), tags));
+            collector.emit(tuple("sdn.switch.tx-dropped", timestamp, entry.getTxDropped(), tags));
+            collector.emit(tuple("sdn.switch.rx-errors", timestamp, entry.getRxErrors(), tags));
+            collector.emit(tuple("sdn.switch.tx-errors", timestamp, entry.getTxErrors(), tags));
+            collector.emit(tuple("sdn.switch.rx-frame-error", timestamp, entry.getRxFrameErr(), tags));
+            collector.emit(tuple("sdn.switch.rx-over-error", timestamp, entry.getRxOverErr(), tags));
+            collector.emit(tuple("sdn.switch.rx-crc-error", timestamp, entry.getRxCrcErr(), tags));
+            collector.emit(tuple("sdn.switch.collisions", timestamp, entry.getCollisions(), tags));
         } catch (JsonEncodeException e) {
             LOGGER.error("Error during serialization of datapoint", e);
         }

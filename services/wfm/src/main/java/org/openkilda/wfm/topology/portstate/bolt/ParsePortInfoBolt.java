@@ -39,7 +39,7 @@ import java.util.Map;
 
 public class ParsePortInfoBolt extends BaseRichBolt {
     private static final Logger logger = LoggerFactory.getLogger(ParsePortInfoBolt.class);
-    private static final String METRIC_NAME = "pen.switch.state";
+    private static final String METRIC_NAME = "sdn.switch.state";
     private OutputCollector collector;
     private Table<String, Integer, Map<String, String>> tagsTable;
 
