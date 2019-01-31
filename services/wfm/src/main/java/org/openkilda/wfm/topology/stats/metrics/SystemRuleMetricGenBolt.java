@@ -63,8 +63,8 @@ public class SystemRuleMetricGenBolt extends MetricGenBolt {
         tags.put("switchid", switchId.toOtsdFormat());
         tags.put("cookieHex", Cookie.toString(entry.getCookie()));
 
-        collector.emit(tuple("pen.switch.flow.system.packets", timestamp, entry.getPacketCount(), tags));
-        collector.emit(tuple("pen.switch.flow.system.bytes", timestamp, entry.getByteCount(), tags));
-        collector.emit(tuple("pen.switch.flow.system.bits", timestamp, entry.getByteCount() * 8, tags));
+        collector.emit(tuple("sdn.switch.flow.system.packets", timestamp, entry.getPacketCount(), tags));
+        collector.emit(tuple("sdn.switch.flow.system.bytes", timestamp, entry.getByteCount(), tags));
+        collector.emit(tuple("sdn.switch.flow.system.bits", timestamp, entry.getByteCount() * 8, tags));
     }
 }

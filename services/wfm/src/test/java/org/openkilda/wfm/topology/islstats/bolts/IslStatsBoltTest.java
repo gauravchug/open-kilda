@@ -78,7 +78,7 @@ public class IslStatsBoltTest {
         assertThat(tsdbTuple.size(), is(1));
 
         Datapoint datapoint = Utils.MAPPER.readValue(tsdbTuple.get(0).toString(), Datapoint.class);
-        assertEquals("pen.isl.latency", datapoint.getMetric());
+        assertEquals("sdn.isl.latency", datapoint.getMetric());
         assertEquals((Long) TIMESTAMP, datapoint.getTime());
         assertEquals(LATENCY, datapoint.getValue());
 

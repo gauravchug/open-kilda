@@ -329,7 +329,7 @@ public class StatsService {
                 if (!portStatsByPortNo.containsKey(port)) {
                     portStatsByPortNo.put(port, new HashMap<String, Double>());
                 }
-                portStatsByPortNo.get(port).put(stats.getMetric().replace("pen.switch.", ""),
+                portStatsByPortNo.get(port).put(stats.getMetric().replace("sdn.switch.", ""),
                         calculateHighestValue(stats.getDps()));
             }
         }

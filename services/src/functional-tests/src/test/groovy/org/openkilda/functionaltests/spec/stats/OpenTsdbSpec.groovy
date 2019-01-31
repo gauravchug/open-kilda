@@ -23,12 +23,12 @@ class OpenTsdbSpec extends BaseSpecification {
 
         where:
         [metric, tags] << ([
-                ["pen.switch.rx-bytes", "pen.switch.rx-bits", "pen.switch.rx-packets",
-                 "pen.switch.tx-bytes", "pen.switch.tx-bits", "pen.switch.tx-packets"],
+                ["sdn.switch.rx-bytes", "sdn.switch.rx-bits", "sdn.switch.rx-packets",
+                 "sdn.switch.tx-bytes", "sdn.switch.tx-bits", "sdn.switch.tx-packets"],
                 uniqueSwitches.collect { [switchid: it.dpId.toOtsdFormat()] }].combinations()
-                + [["pen.isl.latency"], uniqueSwitches.collect { [src_switch: it.dpId.toOtsdFormat()] }].combinations()
-                + [["pen.isl.latency"], uniqueSwitches.collect { [dst_switch: it.dpId.toOtsdFormat()] }].combinations()
-                + [["pen.switch.flow.system.packets", "pen.switch.flow.system.bytes", "pen.switch.flow.system.bits"],
+                + [["sdn.isl.latency"], uniqueSwitches.collect { [src_switch: it.dpId.toOtsdFormat()] }].combinations()
+                + [["sdn.isl.latency"], uniqueSwitches.collect { [dst_switch: it.dpId.toOtsdFormat()] }].combinations()
+                + [["sdn.switch.flow.system.packets", "sdn.switch.flow.system.bytes", "sdn.switch.flow.system.bits"],
                    [[cookieHex: DefaultRule.VERIFICATION_BROADCAST_RULE.toHexString()]]].combinations())
     }
 

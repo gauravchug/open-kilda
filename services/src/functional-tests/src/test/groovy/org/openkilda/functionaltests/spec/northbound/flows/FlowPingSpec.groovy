@@ -55,7 +55,7 @@ class FlowPingSpec extends BaseSpecification {
         and: "Unicast rule packet count is increased and logged to otsdb"
         def statsData = null
         Wrappers.wait(STATS_LOGGING_TIMEOUT, 2) {
-            statsData = otsdb.query(beforePingTime, "pen.switch.flow.system.bytes",
+            statsData = otsdb.query(beforePingTime, "sdn.switch.flow.system.bytes",
                     [switchid: srcSwitch.dpId.toOtsdFormat(),
                      cookieHex: DefaultRule.VERIFICATION_UNICAST_RULE.toHexString()]).dps
             assert statsData && !statsData.empty
