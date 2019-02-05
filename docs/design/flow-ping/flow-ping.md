@@ -14,7 +14,7 @@ packet via existing on switch open flow rules).
 ## Periodic pings
 Periodic pings are initiated by kilda system periodically, with interval defined by `flow.ping.interval` configuration option. Pings for both directions for all existing flows are created on each iteration.
 
-If ping success - it's latency is stored into OTSDB, in metric `pen.flow.latency`, with tags flowid and direction.
+If ping success - it's latency is stored into OTSDB, in metric `sdn.flow.latency`, with tags flowid and direction.
 
 If there is no successful pings for `flow.ping.fail.delay` seconds - flow failure will be reported in logs also `PingReport` message will be send into kafka topic defined in `kafka.topic.flow.status` configuration option.
 

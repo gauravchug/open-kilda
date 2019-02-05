@@ -76,9 +76,9 @@ public class MeterStatsMetricGenBolt extends MetricGenBolt {
         Map<String, String> tags = createCommonTags(switchId, meterStats.getMeterId());
         tags.put("cookieHex", createCookieForDefaultRule(meterStats.getMeterId()).toString());
 
-        emitMetric("pen.switch.flow.system.meter.packets", timestamp, meterStats.getPacketsInCount(), tags);
-        emitMetric("pen.switch.flow.system.meter.bytes", timestamp, meterStats.getByteInCount(), tags);
-        emitMetric("pen.switch.flow.system.meter.bits", timestamp, meterStats.getByteInCount() * 8, tags);
+        emitMetric("sdn.switch.flow.system.meter.packets", timestamp, meterStats.getPacketsInCount(), tags);
+        emitMetric("sdn.switch.flow.system.meter.bytes", timestamp, meterStats.getByteInCount(), tags);
+        emitMetric("sdn.switch.flow.system.meter.bits", timestamp, meterStats.getByteInCount() * 8, tags);
     }
 
     private void emitFlowMeterStats(MeterStatsEntry meterStats, Long timestamp, SwitchId switchId,
@@ -96,9 +96,9 @@ public class MeterStatsMetricGenBolt extends MetricGenBolt {
         tags.put("flowid", cacheEntry.getFlowId());
         tags.put("cookie", cacheEntry.getCookie().toString());
 
-        emitMetric("pen.flow.meter.packets", timestamp, meterStats.getPacketsInCount(), tags);
-        emitMetric("pen.flow.meter.bytes", timestamp, meterStats.getByteInCount(), tags);
-        emitMetric("pen.flow.meter.bits", timestamp, meterStats.getByteInCount() * 8, tags);
+        emitMetric("sdn.flow.meter.packets", timestamp, meterStats.getPacketsInCount(), tags);
+        emitMetric("sdn.flow.meter.bytes", timestamp, meterStats.getByteInCount(), tags);
+        emitMetric("sdn.flow.meter.bits", timestamp, meterStats.getByteInCount() * 8, tags);
     }
 
     private Map<String, String> createCommonTags(SwitchId switchId, long meterId) {

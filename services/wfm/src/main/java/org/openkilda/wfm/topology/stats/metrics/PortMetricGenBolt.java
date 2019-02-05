@@ -47,19 +47,19 @@ public class PortMetricGenBolt extends MetricGenBolt {
                 "port", String.valueOf(entry.getPortNo())
         );
 
-        emitMetric("pen.switch.rx-packets", timestamp, entry.getRxPackets(), tags);
-        emitMetric("pen.switch.tx-packets", timestamp, entry.getTxPackets(), tags);
-        emitMetric("pen.switch.rx-bytes", timestamp, entry.getRxBytes(), tags);
-        emitMetric("pen.switch.rx-bits", timestamp, entry.getRxBytes() * 8, tags);
-        emitMetric("pen.switch.tx-bytes", timestamp, entry.getTxBytes(), tags);
-        emitMetric("pen.switch.tx-bits", timestamp, entry.getTxBytes() * 8, tags);
-        emitMetric("pen.switch.rx-dropped", timestamp, entry.getRxDropped(), tags);
-        emitMetric("pen.switch.tx-dropped", timestamp, entry.getTxDropped(), tags);
-        emitMetric("pen.switch.rx-errors", timestamp, entry.getRxErrors(), tags);
-        emitMetric("pen.switch.tx-errors", timestamp, entry.getTxErrors(), tags);
-        emitMetric("pen.switch.rx-frame-error", timestamp, entry.getRxFrameErr(), tags);
-        emitMetric("pen.switch.rx-over-error", timestamp, entry.getRxOverErr(), tags);
-        emitMetric("pen.switch.rx-crc-error", timestamp, entry.getRxCrcErr(), tags);
-        emitMetric("pen.switch.collisions", timestamp, entry.getCollisions(), tags);
+        emitMetric("sdn.switch.rx-packets", timestamp, entry.getRxPackets(), tags);
+        emitMetric("sdn.switch.tx-packets", timestamp, entry.getTxPackets(), tags);
+        emitMetric("sdn.switch.rx-bytes", timestamp, entry.getRxBytes(), tags);
+        emitMetric("sdn.switch.rx-bits", timestamp, entry.getRxBytes() * 8, tags);
+        emitMetric("sdn.switch.tx-bytes", timestamp, entry.getTxBytes(), tags);
+        emitMetric("sdn.switch.tx-bits", timestamp, entry.getTxBytes() * 8, tags);
+        emitMetric("sdn.switch.rx-dropped", timestamp, entry.getRxDropped(), tags);
+        emitMetric("sdn.switch.tx-dropped", timestamp, entry.getTxDropped(), tags);
+        emitMetric("sdn.switch.rx-errors", timestamp, entry.getRxErrors(), tags);
+        emitMetric("sdn.switch.tx-errors", timestamp, entry.getTxErrors(), tags);
+        emitMetric("sdn.switch.rx-frame-error", timestamp, entry.getRxFrameErr(), tags);
+        emitMetric("sdn.switch.rx-over-error", timestamp, entry.getRxOverErr(), tags);
+        emitMetric("sdn.switch.rx-crc-error", timestamp, entry.getRxCrcErr(), tags);
+        emitMetric("sdn.switch.collisions", timestamp, entry.getCollisions(), tags);
     }
 }

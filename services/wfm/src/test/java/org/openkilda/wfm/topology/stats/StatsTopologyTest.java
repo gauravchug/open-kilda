@@ -160,7 +160,7 @@ public class StatsTopologyTest extends StableAbstractStormTest {
                     .forEach(datapoint -> {
                         assertThat(datapoint.getTags().get("switchid"), is(switchId.toOtsdFormat()));
                         assertThat(datapoint.getTime(), is(timestamp));
-                        assertThat(datapoint.getMetric(), startsWith("pen.switch"));
+                        assertThat(datapoint.getMetric(), startsWith("sdn.switch"));
 
                         metricsByPort.get(datapoint.getTags().get("port"))
                                 .put(datapoint.getMetric(), datapoint.getValue());
@@ -171,20 +171,20 @@ public class StatsTopologyTest extends StableAbstractStormTest {
                 Assert.assertEquals(14, metrics.size());
 
                 int baseCount = i * 20;
-                Assert.assertEquals(baseCount, metrics.get("pen.switch.rx-packets"));
-                Assert.assertEquals(baseCount + 1, metrics.get("pen.switch.tx-packets"));
-                Assert.assertEquals(baseCount + 2, metrics.get("pen.switch.rx-bytes"));
-                Assert.assertEquals((baseCount + 2) * 8, metrics.get("pen.switch.rx-bits"));
-                Assert.assertEquals(baseCount + 3, metrics.get("pen.switch.tx-bytes"));
-                Assert.assertEquals((baseCount + 3) * 8, metrics.get("pen.switch.tx-bits"));
-                Assert.assertEquals(baseCount + 4, metrics.get("pen.switch.rx-dropped"));
-                Assert.assertEquals(baseCount + 5, metrics.get("pen.switch.tx-dropped"));
-                Assert.assertEquals(baseCount + 6, metrics.get("pen.switch.rx-errors"));
-                Assert.assertEquals(baseCount + 7, metrics.get("pen.switch.tx-errors"));
-                Assert.assertEquals(baseCount + 8, metrics.get("pen.switch.rx-frame-error"));
-                Assert.assertEquals(baseCount + 9, metrics.get("pen.switch.rx-over-error"));
-                Assert.assertEquals(baseCount + 10, metrics.get("pen.switch.rx-crc-error"));
-                Assert.assertEquals(baseCount + 11, metrics.get("pen.switch.collisions"));
+                Assert.assertEquals(baseCount, metrics.get("sdn.switch.rx-packets"));
+                Assert.assertEquals(baseCount + 1, metrics.get("sdn.switch.tx-packets"));
+                Assert.assertEquals(baseCount + 2, metrics.get("sdn.switch.rx-bytes"));
+                Assert.assertEquals((baseCount + 2) * 8, metrics.get("sdn.switch.rx-bits"));
+                Assert.assertEquals(baseCount + 3, metrics.get("sdn.switch.tx-bytes"));
+                Assert.assertEquals((baseCount + 3) * 8, metrics.get("sdn.switch.tx-bits"));
+                Assert.assertEquals(baseCount + 4, metrics.get("sdn.switch.rx-dropped"));
+                Assert.assertEquals(baseCount + 5, metrics.get("sdn.switch.tx-dropped"));
+                Assert.assertEquals(baseCount + 6, metrics.get("sdn.switch.rx-errors"));
+                Assert.assertEquals(baseCount + 7, metrics.get("sdn.switch.tx-errors"));
+                Assert.assertEquals(baseCount + 8, metrics.get("sdn.switch.rx-frame-error"));
+                Assert.assertEquals(baseCount + 9, metrics.get("sdn.switch.rx-over-error"));
+                Assert.assertEquals(baseCount + 10, metrics.get("sdn.switch.rx-crc-error"));
+                Assert.assertEquals(baseCount + 11, metrics.get("sdn.switch.collisions"));
             }
         });
     }
@@ -223,7 +223,7 @@ public class StatsTopologyTest extends StableAbstractStormTest {
                         assertThat(datapoint.getTags().get("switchid"),
                                 is(switchId.toOtsdFormat()));
                         assertThat(datapoint.getTime(), is(timestamp));
-                        assertThat(datapoint.getMetric(), is("pen.switch.meters"));
+                        assertThat(datapoint.getMetric(), is("sdn.switch.meters"));
                     });
         });
     }
@@ -236,7 +236,7 @@ public class StatsTopologyTest extends StableAbstractStormTest {
             assertThat(datapoint.getTags().get("switchid"), is(switchId.toOtsdFormat()));
             assertThat(datapoint.getTags().get("cookieHex"), is("0x8000000000000002"));
             assertThat(datapoint.getTime(), is(timestamp));
-        }, "pen.switch.flow.system.meter");
+        }, "sdn.switch.flow.system.meter");
     }
 
     @Test
@@ -251,7 +251,7 @@ public class StatsTopologyTest extends StableAbstractStormTest {
             assertThat(datapoint.getTags().get("flowid"), is(flowWithMeters));
             assertThat(datapoint.getTags().get("cookie"), is(String.valueOf(cookie)));
             assertThat(datapoint.getTime(), is(timestamp));
-        }, "pen.flow.meter");
+        }, "sdn.flow.meter");
     }
 
     private void runMeterStatsTest(long meterId, SwitchId switchId, Consumer<Datapoint> assertConsumer,
@@ -339,14 +339,14 @@ public class StatsTopologyTest extends StableAbstractStormTest {
                     .map(this::readFromJson)
                     .forEach(datapoint -> {
                         switch (datapoint.getMetric()) {
-                            case "pen.flow.packets":
+                            case "sdn.flow.packets":
                                 assertThat(datapoint.getTags().get("direction"), is("forward"));
                                 assertThat(datapoint.getValue().longValue(), is(flowStats.getPacketCount()));
                                 break;
-                            case "pen.flow.raw.bytes":
+                            case "sdn.flow.raw.bytes":
                                 assertThat(datapoint.getValue().longValue(), is(flowStats.getByteCount()));
                                 break;
-                            case "pen.flow.raw.bits":
+                            case "sdn.flow.raw.bits":
                                 assertThat(datapoint.getValue().longValue(), is(flowStats.getByteCount() * 8));
                                 break;
                             default:
@@ -396,13 +396,13 @@ public class StatsTopologyTest extends StableAbstractStormTest {
                     .map(this::readFromJson)
                     .forEach(datapoint -> {
                         switch (datapoint.getMetric()) {
-                            case "pen.switch.flow.system.packets":
+                            case "sdn.switch.flow.system.packets":
                                 assertThat(datapoint.getValue().longValue(), is(systemRuleStats.getPacketCount()));
                                 break;
-                            case "pen.switch.flow.system.bytes":
+                            case "sdn.switch.flow.system.bytes":
                                 assertThat(datapoint.getValue().longValue(), is(systemRuleStats.getByteCount()));
                                 break;
-                            case "pen.switch.flow.system.bits":
+                            case "sdn.switch.flow.system.bits":
                                 assertThat(datapoint.getValue().longValue(), is(systemRuleStats.getByteCount() * 8));
                                 break;
                             default:

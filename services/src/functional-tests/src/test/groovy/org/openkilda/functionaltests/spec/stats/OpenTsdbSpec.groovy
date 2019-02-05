@@ -23,12 +23,12 @@ class OpenTsdbSpec extends BaseSpecification {
 
         where:
         [metric, tags] << ([
-                ["pen.switch.rx-bytes", "pen.switch.rx-bits", "pen.switch.rx-packets",
-                 "pen.switch.tx-bytes", "pen.switch.tx-bits", "pen.switch.tx-packets"],
+                ["sdn.switch.rx-bytes", "sdn.switch.rx-bits", "sdn.switch.rx-packets",
+                 "sdn.switch.tx-bytes", "sdn.switch.tx-bits", "sdn.switch.tx-packets"],
                 uniqueSwitches.collect { [switchid: it.dpId.toOtsdFormat()] }].combinations()
-                + [["pen.isl.latency"], uniqueSwitches.collect { [src_switch: it.dpId.toOtsdFormat()] }].combinations()
-                + [["pen.isl.latency"], uniqueSwitches.collect { [dst_switch: it.dpId.toOtsdFormat()] }].combinations()
-                + [["pen.switch.flow.system.packets", "pen.switch.flow.system.bytes", "pen.switch.flow.system.bits"],
+                + [["sdn.isl.latency"], uniqueSwitches.collect { [src_switch: it.dpId.toOtsdFormat()] }].combinations()
+                + [["sdn.isl.latency"], uniqueSwitches.collect { [dst_switch: it.dpId.toOtsdFormat()] }].combinations()
+                + [["sdn.switch.flow.system.packets", "sdn.switch.flow.system.bytes", "sdn.switch.flow.system.bits"],
                    [[cookieHex: DefaultRule.VERIFICATION_BROADCAST_RULE.toHexString()]]].combinations())
     }
 
@@ -40,8 +40,8 @@ class OpenTsdbSpec extends BaseSpecification {
         otsdb.query(2.minutes.ago, metric, tags).dps.size() > 0
         where:
         [metric, tags] << ([
-                ["pen.switch.flow.system.meter.packets", "pen.switch.flow.system.meter.bytes",
-                 "pen.switch.flow.system.meter.bits"],
+                ["sdn.switch.flow.system.meter.packets", "sdn.switch.flow.system.meter.bytes",
+                 "sdn.switch.flow.system.meter.bits"],
                 [[cookieHex: String.format("%X", DefaultRule.VERIFICATION_BROADCAST_RULE.cookie)],
                  [cookieHex: String.format("%X", DefaultRule.VERIFICATION_UNICAST_RULE.cookie)]]
         ].combinations())
@@ -54,7 +54,7 @@ class OpenTsdbSpec extends BaseSpecification {
         expect: "At least 1 result in the past 2 minutes"
         otsdb.query(2.minutes.ago, metric, [:]).dps.size() > 0
         where:
-        metric << ["pen.flow.meter.packets", "pen.flow.meter.bytes", "pen.flow.meter.bits"]
+        metric << ["sdn.flow.meter.packets", "sdn.flow.meter.bytes", "sdn.flow.meter.bits"]
     }
 
     def getUniqueSwitches() {

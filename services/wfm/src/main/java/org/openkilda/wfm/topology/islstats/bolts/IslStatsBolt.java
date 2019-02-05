@@ -60,7 +60,7 @@ public class IslStatsBolt extends BaseRichBolt {
         tags.put("dst_switch", data.getDestination().getSwitchId().toOtsdFormat());
         tags.put("dst_port", String.valueOf(data.getDestination().getPortNo()));
 
-        return tsdbTuple("pen.isl.latency", timestamp, data.getLatency(), tags);
+        return tsdbTuple("sdn.isl.latency", timestamp, data.getLatency(), tags);
     }
 
     public String getJson(Tuple tuple) {
