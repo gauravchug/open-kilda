@@ -114,7 +114,7 @@ class IslReplugSpec extends BaseSpecification {
         and: "Self-loop rule packet counter is incremented and logged in otsdb"
         def statsData = null
         Wrappers.wait(STATS_LOGGING_TIMEOUT, 2) {
-            statsData = otsdb.query(beforeReplugTime, "pen.switch.flow.system.packets",
+            statsData = otsdb.query(beforeReplugTime, "sdn.switch.flow.system.packets",
                     [switchid : expectedIsl.srcSwitch.dpId.toOtsdFormat(),
                      cookieHex: DefaultRule.DROP_LOOP_RULE.toHexString()]).dps
             assert statsData && !statsData.empty

@@ -33,7 +33,7 @@ class SwitchPortConfigSpec extends BaseSpecification {
         and: "Port failure is logged in OpenTSDB"
         def statsData = [:]
         Wrappers.wait(STATS_LOGGING_TIMEOUT) {
-            statsData = otsdb.query(portDownTime, "pen.switch.state",
+            statsData = otsdb.query(portDownTime, "sdn.switch.state",
                     [switchid: isl.srcSwitch.dpId.toOtsdFormat(), port: isl.srcPort]).dps
             assert statsData.size() == 1
         }
@@ -51,7 +51,7 @@ class SwitchPortConfigSpec extends BaseSpecification {
 
         and: "Port UP event is logged in OpenTSDB"
         Wrappers.wait(STATS_LOGGING_TIMEOUT) {
-            statsData = otsdb.query(portUpTime, "pen.switch.state",
+            statsData = otsdb.query(portUpTime, "sdn.switch.state",
                     [switchid: isl.srcSwitch.dpId.toOtsdFormat(), port: isl.srcPort]).dps
             assert statsData.size() == 1
         }

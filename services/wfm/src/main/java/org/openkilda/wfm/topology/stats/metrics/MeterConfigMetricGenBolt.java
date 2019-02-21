@@ -49,6 +49,6 @@ public class MeterConfigMetricGenBolt extends MetricGenBolt {
                 "switchid", switchId.toOtsdFormat(),
                 "meterId", meterId.toString()
         );
-        emitMetric("pen.switch.meters", timestamp, meterId, tags);
+        emitMetric("sdn.switch.meters", timestamp, meterId, tags);
     }
 }

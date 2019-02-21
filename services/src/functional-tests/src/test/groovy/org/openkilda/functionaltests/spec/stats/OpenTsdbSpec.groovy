@@ -24,15 +24,15 @@ class OpenTsdbSpec extends BaseSpecification {
         where:
         [metric, tags] << (
                 //basic stats for rx/tx, use every unique switch in tags
-                [["pen.switch.rx-bytes", "pen.switch.rx-bits", "pen.switch.rx-packets",
-                 "pen.switch.tx-bytes", "pen.switch.tx-bits", "pen.switch.tx-packets"],
+                [["sdn.switch.rx-bytes", "sdn.switch.rx-bits", "sdn.switch.rx-packets",
+                 "sdn.switch.tx-bytes", "sdn.switch.tx-bits", "sdn.switch.tx-packets"],
                 uniqueSwitches.collect { [switchid: it.dpId.toOtsdFormat()] }].combinations()
                 //isl latency stats, use every unique switch in src_switch tag
-                + [["pen.isl.latency"], uniqueSwitches.collect { [src_switch: it.dpId.toOtsdFormat()] }].combinations()
+                + [["sdn.isl.latency"], uniqueSwitches.collect { [src_switch: it.dpId.toOtsdFormat()] }].combinations()
                 //isl latency stats, use every unique switch in dst_switch tag
-                + [["pen.isl.latency"], uniqueSwitches.collect { [dst_switch: it.dpId.toOtsdFormat()] }].combinations()
+                + [["sdn.isl.latency"], uniqueSwitches.collect { [dst_switch: it.dpId.toOtsdFormat()] }].combinations()
                 //stats for default rules. use discovery packet cookie in tags, as is doesn't need any specific actions
-                + [["pen.switch.flow.system.packets", "pen.switch.flow.system.bytes", "pen.switch.flow.system.bits"],
+                + [["sdn.switch.flow.system.packets", "sdn.switch.flow.system.bytes", "sdn.switch.flow.system.bits"],
                    [[cookieHex: DefaultRule.VERIFICATION_BROADCAST_RULE.toHexString()]]].combinations())
     }
 
@@ -44,8 +44,8 @@ class OpenTsdbSpec extends BaseSpecification {
         otsdb.query(10.minutes.ago, metric, [:]).dps.size() > 0
         where:
         [metric, tags] << (
-                [["pen.switch.flow.system.meter.packets", "pen.switch.flow.system.meter.bytes",
-                  "pen.switch.flow.system.meter.bits"],
+                [["sdn.switch.flow.system.meter.packets", "sdn.switch.flow.system.meter.bytes",
+                  "sdn.switch.flow.system.meter.bits"],
                  [[cookieHex: String.format("0x%X", DefaultRule.VERIFICATION_BROADCAST_RULE.cookie)]]].combinations())
     }
 
