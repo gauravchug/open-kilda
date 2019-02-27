@@ -20,12 +20,12 @@ import org.openkilda.wfm.topology.AbstractTopology;
 import org.openkilda.wfm.topology.opentsdb.OpenTsdbTopologyConfig.OpenTsdbConfig;
 import org.openkilda.wfm.topology.opentsdb.bolts.DatapointParseBolt;
 import org.openkilda.wfm.topology.opentsdb.bolts.OpenTSDBFilterBolt;
+import org.openkilda.wfm.topology.opentsdb.bolts.OpenTsdbCustomBolt;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
-import org.apache.storm.opentsdb.bolt.OpenTsdbBolt;
 import org.apache.storm.opentsdb.bolt.TupleOpenTsdbDatapointMapper;
 import org.apache.storm.opentsdb.client.OpenTsdbClient;
 import org.apache.storm.topology.TopologyBuilder;
@@ -44,7 +44,7 @@ public class OpenTsdbTopology extends AbstractTopology<OpenTsdbTopologyConfig> {
 
     @VisibleForTesting
     static final String OTSDB_SPOUT_ID = "kilda.otsdb-spout";
-    private static final String OTSDB_BOLT_ID = "otsdb-bolt";
+    private static final String OTSDB_BOLT_ID = "otsdb-bolt-1";
     private static final String OTSDB_FILTER_BOLT_ID = OpenTSDBFilterBolt.class.getSimpleName();
     private static final String OTSDB_PARSE_BOLT_ID = DatapointParseBolt.class.getSimpleName();
 
@@ -72,7 +72,7 @@ public class OpenTsdbTopology extends AbstractTopology<OpenTsdbTopologyConfig> {
             tsdbBuilder.enableChunkedEncoding();
         }
 
-        OpenTsdbBolt openTsdbBolt = new OpenTsdbBolt(tsdbBuilder,
+        OpenTsdbCustomBolt openTsdbBolt = new OpenTsdbCustomBolt(tsdbBuilder,
                 Collections.singletonList(TupleOpenTsdbDatapointMapper.DEFAULT_MAPPER));
         openTsdbBolt.withBatchSize(openTsdbConfig.getBatchSize()).withFlushInterval(openTsdbConfig.getFlushInterval());
         tb.setBolt(OTSDB_BOLT_ID, openTsdbBolt, openTsdbConfig.getBoltExecutors())
