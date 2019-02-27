@@ -143,7 +143,7 @@ public class OpenTsdbCustomBolt extends BaseRichBolt {
                     metricPointsWithTuple.clear();
                 } catch (BadRequestException e) {
                     LOG.error("OTSDB_ERROR: Sending metrics of size [{}]", metricPointsWithTuple.size());
-                    LOG.error("OTSDB_ERROR: metrics", metricPointsWithTuple);
+                    LOG.error("OTSDB_ERROR: metrics [{}]", metricPointsWithTuple);
                     throw e;
                 }
             }
