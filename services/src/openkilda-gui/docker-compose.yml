@@ -1,6 +1,0 @@
-version: '2.1'
-services:
-  openkilda_gui:
-    build: .
-    ports:
-      - "8010:1010"
