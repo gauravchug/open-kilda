@@ -33,7 +33,7 @@
 
         <project.checkstyle.root>${project.parent.basedir}/checkstyle</project.checkstyle.root>
 
-        <apache.kafka.version>0.10.2.1</apache.kafka.version>
+        <apache.kafka.version>0.10.2.2</apache.kafka.version>
         <commons.cli.version>1.4</commons.cli.version>
         <commons.codec.version>1.10</commons.codec.version>
         <commons-collections.version>4.1</commons-collections.version>
@@ -42,13 +42,13 @@
         <easymock.version>3.4</easymock.version>
         <enunciate.version>2.9.1</enunciate.version>
         <floodlight.version>1.2-kilda-3</floodlight.version>
-        <guava.version>20.0</guava.version>
+        <guava.version>30.0-android</guava.version>
         <httpclient.version>3.1</httpclient.version>
         <jackson.version>2.8.8</jackson.version>
         <javadoc.version>2.10.4</javadoc.version>
         <jaxrs.version>2.1</jaxrs.version>
         <jersey.version>2.25.1</jersey.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
         <puppycrawl-tools-checkstyle.version>8.10</puppycrawl-tools-checkstyle.version>
         <maven.compiler.version>3.6.1</maven.compiler.version>
