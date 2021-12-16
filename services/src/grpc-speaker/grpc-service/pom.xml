@@ -19,14 +19,14 @@
     <description>The GRPC speaker fasade</description>
 
     <properties>
-        <spring.kafka.version>1.2.2.RELEASE</spring.kafka.version>
+        <spring.kafka.version>2.1.0.RELEASE</spring.kafka.version>
         <spring.boot.version>1.5.6.RELEASE</spring.boot.version>
         <jetty.version>9.2.22.v20170606</jetty.version>
         <start-class>org.openkilda.grpc.speaker.Application</start-class>
-        <grpc.version>1.18.0</grpc.version>
+        <grpc.version>1.35.0</grpc.version>
         <protobuf.version>3.6.1</protobuf.version>
         <protoc.version>3.6.1</protoc.version>
-        <swagger.version>2.9.2</swagger.version>
+        <swagger.version>2.10.0</swagger.version>
     </properties>
 
     <dependencyManagement>
