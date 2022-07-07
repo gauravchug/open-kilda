@@ -40,7 +40,7 @@
     "font-awesome": "^4.7.0",
     "jquery": "^3.3.1",
     "jszip": "^3.1.5",
-    "moment": "^2.22.2",
+    "moment": "^2.29.4",
     "ng-click-outside": "^4.0.0",
     "ng-dygraphs": "^0.4.0",
     "ng-select2-component": "^6.0.1",
