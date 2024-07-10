@@ -1,3 +1,4 @@
 click>=6.2
 bottle>=0.12.7
 pyroute2>=0.4.21
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
