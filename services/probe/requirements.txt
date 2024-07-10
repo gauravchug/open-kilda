@@ -4,3 +4,4 @@ Click
 PTable
 kafka-python
 py2neo
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
